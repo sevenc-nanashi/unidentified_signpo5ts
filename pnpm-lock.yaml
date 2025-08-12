@@ -57,6 +57,9 @@ importers:
       vite:
         specifier: ^7.1.1
         version: 7.1.1(@types/node@22.13.4)
+      vite-console-forward-plugin:
+        specifier: ^2.0.1
+        version: 2.0.1(vite@7.1.1(@types/node@22.13.4))
       vite-plugin-arraybuffer:
         specifier: ^0.1.0
         version: 0.1.0
@@ -860,6 +863,11 @@ packages:
   vanjs-core@1.5.5:
     resolution: {integrity: sha512-BC9MjbXYIRqnwncXfacT6upJpVmIKyrV2MjZi8NuCK+yc9RP0hfdghTpmEuYswXOfkLarDPPcYK4X6q68T9e+g==}
 
+  vite-console-forward-plugin@2.0.1:
+    resolution: {integrity: sha512-cA2vIWauvEvVwk5H10lRxdxpIGK5JK9Rz4PRDBWhj855aJVxWrZ7v+u6RyTjSpJ+fUPIMwHLN/5FjXyywcpkow==}
+    peerDependencies:
+      vite: ^6.0.0 || ^7.0.0
+
   vite-plugin-arraybuffer@0.1.0:
     resolution: {integrity: sha512-AhUP3FzB5ftDKBT5QPluK0l+v64GHDa+nNv6ncEQfNeOnVIbbdkYY1sMfEs9ZuAL2AULbxP9pbE3t2qLwmLdYA==}
 
@@ -1543,6 +1551,10 @@ snapshots:
   undici-types@6.20.0: {}
 
   vanjs-core@1.5.5: {}
+
+  vite-console-forward-plugin@2.0.1(vite@7.1.1(@types/node@22.13.4)):
+    dependencies:
+      vite: 7.1.1(@types/node@22.13.4)
 
   vite-plugin-arraybuffer@0.1.0: {}
 

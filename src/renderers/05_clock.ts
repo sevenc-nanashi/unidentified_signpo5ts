@@ -19,7 +19,7 @@ let graphics: p5.Graphics;
 
 const screenDotUnit = dotUnit;
 
-const chordThreshold = 53;
+const chordThreshold = 50;
 
 const activateMidi = 61;
 
@@ -185,7 +185,6 @@ const drawDrum = (p: p5, state: State, size: number, activateNote: Note) => {
       "clap",
       "miniCymbal",
       "cymbal",
-      "dial",
       "star",
     ];
     for (const drum of drumsInCurrentMeasure.toSorted(
@@ -340,31 +339,6 @@ const drawDrum = (p: p5, state: State, size: number, activateNote: Note) => {
             (angle - 0.05) * Math.PI * 2,
             (angle + 0.55) * Math.PI * 2,
           );
-          break;
-        }
-        case "dial": {
-          using _context = useRendererContext(graphics);
-
-          graphics.noFill();
-          graphics.stroke(255, 255 * (1 - clip(passedMeasures)));
-          graphics.strokeWeight(2);
-          for (const [i, o] of [
-            [-16, -12],
-            [12, 16],
-          ]) {
-            const [ix, iy] = getXY(
-              midi.header.ticksToMeasures(drum.ticks),
-              size + i,
-            );
-            const [ox, oy] = getXY(
-              midi.header.ticksToMeasures(drum.ticks),
-              size + o,
-            );
-            graphics.line(ix, iy, ox, oy);
-          }
-          const [x, y] = getXY(midi.header.ticksToMeasures(drum.ticks), size);
-          graphics.circle(x, y, p.lerp(16, 20, easeOutQuint(passedMeasures)));
-
           break;
         }
         case "star": {

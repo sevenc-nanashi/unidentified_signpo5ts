@@ -92,7 +92,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       (note.midi === pixelsortInMid || note.midi === pixelsortOutMid),
   );
 
-  if (activeBackground) {
+  if (activeBackground && loadedImages[activeBackground.text]) {
     cpuGraphics.clear();
     cpuGraphics.image(
       loadedImages[activeBackground.text],

@@ -36,33 +36,33 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   using _context = useRendererContext(p);
 
   const section = textSections[index];
-  if (!section) throw new Error(`No text for index ${index}`);
+  if (section) {
+    const fontSize = dotUnit * 6;
 
-  const fontSize = dotUnit * 6;
+    const isFontSwitchExists = textsTrack.notes.some(
+      (note) =>
+        note.ticks <= state.currentTick &&
+        state.currentTick < note.ticks + note.durationTicks &&
+        note.midi === fontSwitchMidi,
+    );
 
-  const isFontSwitchExists = textsTrack.notes.some(
-    (note) =>
-      note.ticks <= state.currentTick &&
-      state.currentTick < note.ticks + note.durationTicks &&
-      note.midi === fontSwitchMidi,
-  );
+    p.textSize(fontSize);
+    p.textFont(isFontSwitchExists ? "35-55 Font Regular" : mainFont);
+    p.fill(...fg);
 
-  p.textSize(fontSize);
-  p.textFont(isFontSwitchExists ? "35-55 Font" : mainFont);
-  p.fill(...fg);
+    p.textAlign(p.LEFT, p.CENTER);
+    const textSizeFactor = 0.2;
+    p.textLeading(fontSize * (1 + textSizeFactor));
+    const leftSection = section[0];
 
-  p.textAlign(p.LEFT, p.CENTER);
-  const textSizeFactor = 0.2;
-  p.textLeading(fontSize * (1 + textSizeFactor));
-  const leftSection = section[0];
+    p.drawingContext.shadowBlur = dotUnit;
 
-  p.drawingContext.shadowBlur = dotUnit;
+    p.drawingContext.shadowColor = toRgb(dim(reiColor, 0.7));
+    p.text(leftSection, padding, p.height * 0.4);
 
-  p.drawingContext.shadowColor = toRgb(dim(reiColor, 0.7));
-  p.text(leftSection, padding, p.height * 0.4);
-
-  p.textAlign(p.RIGHT, p.CENTER);
-  const rightSection = section[1];
-  p.drawingContext.shadowColor = toRgb(dim(tycColor, 0.7));
-  p.text(rightSection, p.width - padding, p.height * 0.4);
+    p.textAlign(p.RIGHT, p.CENTER);
+    const rightSection = section[1];
+    p.drawingContext.shadowColor = toRgb(dim(tycColor, 0.7));
+    p.text(rightSection, p.width - padding, p.height * 0.4);
+  }
 });

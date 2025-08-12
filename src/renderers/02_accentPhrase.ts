@@ -7,7 +7,7 @@ import timelineMid from "../assets/timeline.mid?mid";
 import type { State } from "../state";
 import { useRendererContext } from "../utils";
 
-const track = midi.tracks.find((track) => track.name === "Enhance (Vital)")!;
+const track = midi.tracks[midi.tracks.findIndex((track) => track.name === "Accent Phrase") + 2];
 const apTerminateTrack = timelineMid.tracks.find(
   (track) => track.name === "apTerminate",
 )!;

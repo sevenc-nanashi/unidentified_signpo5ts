@@ -26,7 +26,7 @@ const lyrics = lyricsTrack.reduce(
     const midiNotes = lyricsTonejsMid.notes.filter(
       (note) => note.ticks === acc.time,
     );
-    if (!midiNotes) {
+    if (!midiNotes || midiNotes.length === 0) {
       throw new Error(`No note found for lyrics at ${acc.time}, ${text}`);
     }
     for (const part of text.split("|")) {
@@ -47,7 +47,7 @@ const bracketChars = ["「", "」", "『", "』", "（", "）", "〈", "〉"];
 const groupLeftLyrics = () => {
   const result = [];
   const leftLyrics = lyrics.lyrics.filter(
-    (lyric) => lyric.text.startsWith("r:") || lyric.text.startsWith("b:"),
+    (lyric) => lyric.text.startsWith("t:") || lyric.text.startsWith("b:"),
   );
   const events = [] as { type: "start" | "end"; time: number; lines: number }[];
   for (const lyric of leftLyrics) {
@@ -147,7 +147,7 @@ const borderRadius = 4;
 
 const fontSize = 36;
 const lineHeight = fontSize * 1.2;
-const graphicsWidth = lineHeight * 5;
+const graphicsWidth = lineHeight * 7;
 
 const fg = [255, 255, 255] as const;
 
@@ -180,12 +180,12 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
 
   const leftLyrics = activeLyrics
     .filter(
-      (lyric) => lyric.text.startsWith("r:") || lyric.text.startsWith("b:"),
+      (lyric) => lyric.text.startsWith("t:") || lyric.text.startsWith("b:"),
     )
     .map((lyric) => lyric.text.slice(2));
   const rightLyrics = activeLyrics
     .filter(
-      (lyric) => lyric.text.startsWith("t:") || lyric.text.startsWith("b:"),
+      (lyric) => lyric.text.startsWith("r:") || lyric.text.startsWith("b:"),
     )
     .map((lyric) => lyric.text.slice(2));
 
@@ -213,13 +213,13 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   const rightBaseX = p.width - sidePadding - rightGraphics.width;
   for (let shiftX = -1; shiftX <= 1; shiftX++) {
     for (let shiftY = -1; shiftY <= 1; shiftY++) {
-      p.tint(...dim(reiColor, 0.7), 255);
+      p.tint(...dim(tycColor, 0.7), 255);
       p.image(
         leftGraphics,
         leftBaseX + borderRadius * shiftX,
         borderRadius * shiftY,
       );
-      p.tint(...dim(tycColor, 0.7), 255);
+      p.tint(...dim(reiColor, 0.7), 255);
       p.image(
         rightGraphics,
         rightBaseX + borderRadius * shiftX,

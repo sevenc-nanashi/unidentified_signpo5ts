@@ -3,15 +3,13 @@ import { midi } from "./midi.ts";
 
 export const mainDrum = midi.tracks.find((track) => track.name === "Sitala")!;
 export const subDrum = midi.tracks.find((track) => track.name === "RVK-808")!;
-export const cymbal = midi.tracks.find((track) => track.name === "SI-Drum Kit")!;
+export const cymbal = midi.tracks.find(
+  (track) => track.name === "SI-Drum Kit",
+)!;
 export const percDrum =
   midi.tracks[midi.tracks.findIndex((track) => track.name === "RVK-808") + 1]!;
-export const star = midi.tracks.find(
-  (track) => track.name === "Shooting Star",
-)!;
-export const dial = midi.tracks.find(
-  (track) => track.name === "Fade Dial (Vital)",
-)!;
+export const star =
+  midi.tracks[midi.tracks.findIndex((track) => track.name === "fx") + 1];
 
 export type DrumDefinition = {
   kick: number;
@@ -54,12 +52,6 @@ export const drumDefinition = [
     cymbal,
     {
       cymbal: 49,
-    },
-  ],
-  [
-    dial,
-    {
-      dial: 76,
     },
   ],
   [

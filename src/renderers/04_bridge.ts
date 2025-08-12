@@ -79,65 +79,6 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     shadowScale = 1;
   }
 
-  const bridgeAlpha = getAlpha(state, bridgeSpawnMidi, bridgePersistMidi);
-  if (bridgeAlpha > 0) {
-    using _context = useRendererContext(mainGraphics);
-    mainGraphics.tint(255, bridgeAlpha * 255);
-    mainGraphics.translate(0, 4 * (1 - bridgeAlpha));
-    const bridgeAtlas = atlasMap["bridge"];
-    const shadowAtlas = atlasMap["bridge_shadow"];
-    const bridgeHeight = bridgeAtlas.height - 10;
-    mainGraphics.image(
-      mainImage,
-      0,
-      mainGraphics.height - bridgeHeight,
-      bridgeAtlas.width,
-      bridgeAtlas.height,
-      ...bridgeAtlas.start,
-      bridgeAtlas.width,
-      bridgeAtlas.height,
-    );
-    if (shadowScale > 0) {
-      using _context = useRendererContext(shadowGraphics);
-      shadowGraphics.translate(
-        0,
-        shadowGraphics.height -
-          bridgeHeight +
-          (bridgeAtlas.yellowPixels[0][1] - bridgeAtlas.start[1]),
-      );
-      shadowGraphics.scale(1, shadowScale);
-      shadowGraphics.image(
-        mainImage,
-        0,
-        0,
-        shadowAtlas.width,
-        shadowAtlas.height,
-        ...shadowAtlas.start,
-        shadowAtlas.width,
-        shadowAtlas.height,
-      );
-    }
-  }
-
-  const roadAlpha = getAlpha(state, roadSpawnMidi, roadPersistMidi);
-  if (roadAlpha > 0) {
-    using _context = useRendererContext(mainGraphics);
-    mainGraphics.tint(255, roadAlpha * 255);
-    mainGraphics.translate(0, 4 * (1 - roadAlpha));
-    const roadAtlas = atlasMap["road"];
-    const roadHeight = roadAtlas.height;
-    mainGraphics.image(
-      mainImage,
-      0,
-      mainGraphics.height - roadHeight,
-      roadAtlas.width,
-      roadAtlas.height,
-      ...roadAtlas.start,
-      roadAtlas.width,
-      roadAtlas.height,
-    );
-  }
-
   const characterX = 100;
   const characterMinusY = 20;
   {

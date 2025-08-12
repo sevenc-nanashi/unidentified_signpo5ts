@@ -4,16 +4,19 @@ import yaml from "@rollup/plugin-yaml";
 import hmrify from "vite-plugin-hmrify";
 import arraybuffer from "vite-plugin-arraybuffer";
 import wasm from "vite-plugin-wasm";
+import { consoleForwardPlugin } from "vite-console-forward-plugin";
 
 export default defineConfig({
   server: {
     port: 5175,
+    allowedHosts: true,
   },
   plugins: [
     yaml(),
     wasm(),
     hmrify(),
     arraybuffer(),
+    consoleForwardPlugin(),
     {
       name: "tonejs-mid",
       async transform(_, id) {
