@@ -30,6 +30,7 @@
 		"p5": "1.11.3",
 		"p5-frame-capturer": "^0.4.2",
 		"pixelsort": "link:pixelsort/pkg",
+		"ts-pattern": "^5.8.0",
 		"vite-plugin-wasm": "^3.5.0"
 	},
 	"pnpm": {

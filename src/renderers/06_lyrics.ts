@@ -90,6 +90,7 @@ const groupLeftLyrics = () => {
   return result;
 };
 const leftLyricsGroups = groupLeftLyrics();
+const paddingPerChar = dotUnit;
 
 const verticalText = (
   graphics: p5.Graphics,
@@ -103,7 +104,7 @@ const verticalText = (
   const actualLineHeight = lineHeight || graphics.textSize();
   for (const char of text) {
     if (char === " ") {
-      y += graphics.textSize();
+      y += graphics.textSize() + paddingPerChar;
       continue;
     }
     if (char === "\n") {
@@ -134,12 +135,10 @@ const verticalText = (
       graphics.textAlign(graphics.CENTER, graphics.TOP);
       graphics.text(replacementChars[char] ?? char, x, y);
     }
-    y += graphics.textSize();
+    y += graphics.textSize() + paddingPerChar;
   }
 };
 
-export const sidePadding = 24 + 36 * 2;
-export const topPadding = 48 + 36 * 2;
 let rightGraphics: p5.Graphics;
 let leftGraphics: p5.Graphics;
 
@@ -148,6 +147,8 @@ const borderRadius = dotUnit;
 const fontSize = dotUnit * 13;
 const lineHeight = fontSize * 1.2;
 const graphicsWidth = lineHeight * 7;
+export const sidePadding = 24 + fontSize * 2;
+export const topPadding = 48 + fontSize * 4;
 
 const fg = [255, 255, 255] as const;
 

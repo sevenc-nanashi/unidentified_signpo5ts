@@ -36,5 +36,35 @@ export default defineConfig({
         }
       },
     },
+    {
+      name: "auto-graphics",
+      transform(code, id) {
+        if (!code.includes("import.meta.autoGraphics")) {
+          return;
+        }
+
+        return {
+          code:
+            `const $import_meta_autoGraphics_instances = {};` +
+            code.replace(
+              /import\.meta\.autoGraphics/g,
+              "$importmeta_autoGraphics",
+            ) +
+            `\nfunction $importmeta_autoGraphics(p, name, ...args) {` +
+            `  if (!$import_meta_autoGraphics_instances[name]) {` +
+            `    $import_meta_autoGraphics_instances[name] = p.createGraphics(...args);` +
+            `  }` +
+            `  return $import_meta_autoGraphics_instances[name];` +
+            `}` +
+            `if (import.meta.hot) {` +
+            `  import.meta.hot.dispose(() => {` +
+            `    for (const key in $import_meta_autoGraphics_instances) {` +
+            `      $import_meta_autoGraphics_instances[key].remove();` +
+            `    }` +
+            `  });` +
+            `}`,
+        };
+      },
+    },
   ],
 });

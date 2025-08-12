@@ -17,3 +17,11 @@ declare module "*.mid?mid" {
 	export { toneJsMidi, rawMidi };
 	export default toneJsMidi;
 }
+
+interface ImportMeta {
+	autoGraphics: (
+		p: p5,
+		name: string,
+		...args: Parameters<p5["createGraphics"]>
+	) => p5.Graphics;
+}

@@ -21,7 +21,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   if (!mainImage) {
     mainImage = p.loadImage(mainImageUrl);
   }
-  const characterX = 100;
+  const characterX = 150;
   const characterMinusY = 20;
 
   using _context = useRendererContext(p);

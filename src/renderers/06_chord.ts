@@ -103,7 +103,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     p.drawingContext.shadowColor = "#8888";
     p.drawingContext.shadowBlur = dotUnit;
     if (isHalf) {
-      p.translate((leftPadding + allWidth - innerWidth * 2) / 2, 0);
+      p.translate(innerWidth - partWidth - partWidth / 2, 0);
     }
 
     p.image(
@@ -152,17 +152,24 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       return;
     }
 
-    p.fill(255, 255, 255, 255 * (1 - Math.abs(animationProgress)));
+    if (animationProgress < 0) {
+      p.fill(255, 255, 255, 255 * easeOutQuint(1 + animationProgress));
+    } else {
+      p.fill(255, 255, 255, 255 * (1 - Math.abs(animationProgress)));
+    }
     p.text(
       "Chords:",
       baseX +
         leftPadding +
         animationWidth *
           Math.sign(animationProgress) *
-          (animationProgress < 0
-            ? 1 - easeOutQuint(1 + animationProgress)
-            : easeOutQuint(animationProgress)),
-      height - baseBottomPadding - lineHeight / 2 - dotUnit * 8,
+          (animationProgress < 0 ? 1 - easeOutQuint(1 + animationProgress) : 0),
+      height -
+        baseBottomPadding -
+        yShift -
+        drawHeight +
+        imageTopPadding * (drawHeight / rowHeight) -
+        dotUnit * 2,
     );
   }
 
@@ -182,8 +189,8 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     let x: number;
     if (isHalf) {
       x = p.lerp(
-        p.width / 2 - innerWidth / 2,
-        p.width / 2 + innerWidth / 2,
+        p.width / 2 - partWidth / 2,
+        p.width / 2 + partWidth / 2,
         progress,
       );
     } else {

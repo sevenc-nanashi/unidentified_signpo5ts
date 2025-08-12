@@ -7,7 +7,10 @@ import timelineMid from "../assets/timeline.mid?mid";
 import type { State } from "../state";
 import { useRendererContext } from "../utils";
 
-const track = midi.tracks[midi.tracks.findIndex((track) => track.name === "Accent Phrase") + 2];
+const track =
+  midi.tracks[
+    midi.tracks.findIndex((track) => track.name === "Accent Phrase") + 2
+  ];
 const apTerminateTrack = timelineMid.tracks.find(
   (track) => track.name === "apTerminate",
 )!;
@@ -84,7 +87,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   );
 
   using _context = useRendererContext(p);
-  p.translate(p.width / 2, p.height * 0.45);
+  p.translate(p.width / 2, p.height * (1 / 5));
 
   const leftX = -width / 2;
   const rightX = +width / 2;
