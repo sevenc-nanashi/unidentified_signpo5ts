@@ -33,3 +33,17 @@ export const toRgb = (
   alpha === undefined
     ? `rgb(${rgb.join(", ")})`
     : `rgba(${rgb.join(", ")}, ${alpha})`;
+
+export const resizeWithAspectRatio = (
+  base: { width: number; height: number },
+  target: { width: "here"; height: number } | { width: number; height: "here" },
+): number => {
+  if (target.width === "here") {
+    const ratio = base.height / target.height;
+    return base.width / ratio;
+  } else if (target.height === "here") {
+    const ratio = base.width / target.width;
+    return base.height / ratio;
+  }
+  throw new Error("Either width or height must be 'here' to maintain aspect ratio.");
+}

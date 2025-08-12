@@ -4,123 +4,39 @@ import { dotUnit, mainFont, reiColor, tycColor } from "../const";
 import type { State } from "../state";
 import timelineMid from "../assets/timeline.mid?mid";
 import { dim, useRendererContext } from "../utils";
-import vert from "../shaders/common.vert?raw";
-import mult from "../shaders/mult.frag?raw";
-import mainImageUrl from "../assets/illusts/main.png?url";
 import { atlasMap } from "../atlas";
 import { characterLabs } from "../lab";
 import { easeOutQuint, unlerp } from "../easing";
+import mainImageUrl from "../assets/illusts/main.png?url";
 
 const bridgeTrack = timelineMid.tracks.find(
-  (track) => track.name === "bridge",
+  (track) => track.name === "sprites",
 )!;
-let shadowGraphics: p5.Graphics;
-let mainGraphics: p5.Graphics;
-let bufferGraphics: p5.Graphics;
-
-let shader: p5.Shader;
 let mainImage: p5.Image;
-
-const bridgeSpawnMidi = 48;
-const bridgePersistMidi = 49;
-const shadowSpawnMidi = 50;
-const shadowPersistMidi = 51;
-const roadSpawnMidi = 52;
-const roadPersistMidi = 53;
 
 const reiBaseNote = 60;
 const tycBaseNote = 72;
 
 export const draw = import.meta.hmrify((p: p5, state: State) => {
-  if (!shadowGraphics) {
+  if (!mainImage) {
     mainImage = p.loadImage(mainImageUrl);
-    shadowGraphics = p.createGraphics(p.width / dotUnit, p.height / dotUnit);
-    mainGraphics = p.createGraphics(p.width / dotUnit, p.height / dotUnit);
-    bufferGraphics = p.createGraphics(
-      p.width / dotUnit,
-      p.height / dotUnit,
-      p.WEBGL,
-    );
-
-    shader = p.createShader(vert, mult);
-    // rgb(213, 199, 209)
-    bufferGraphics.shader(shader);
   }
-
-  shadowGraphics.clear();
-  mainGraphics.clear();
-  bufferGraphics.clear();
-  shadowGraphics.noSmooth();
-  mainGraphics.noSmooth();
-
-  let shadowScale = 0;
-  const shadowSpawnNote = bridgeTrack.notes.find(
-    (note) =>
-      note.midi === shadowSpawnMidi &&
-      note.ticks <= state.currentTick &&
-      state.currentTick < note.ticks + note.durationTicks,
-  );
-  if (shadowSpawnNote) {
-    shadowScale = easeOutQuint(
-      unlerp(
-        shadowSpawnNote.ticks,
-        shadowSpawnNote.ticks + shadowSpawnNote.durationTicks,
-        state.currentTick,
-      ),
-    );
-  }
-  const shadowPersistNote = bridgeTrack.notes.find(
-    (note) =>
-      note.midi === shadowPersistMidi &&
-      note.ticks <= state.currentTick &&
-      state.currentTick < note.ticks + note.durationTicks,
-  );
-  if (shadowPersistNote) {
-    shadowScale = 1;
-  }
-
   const characterX = 100;
   const characterMinusY = 20;
-  {
-    using _context = useRendererContext(shadowGraphics);
-
-    shadowGraphics.translate(
-      shadowGraphics.width / 2 - characterX,
-      shadowGraphics.height - characterMinusY,
-    );
-    shadowGraphics.scale(1, -shadowScale);
-    drawCharacter(p, shadowGraphics, state, "rei", reiBaseNote);
-  }
-  {
-    using _context = useRendererContext(shadowGraphics);
-
-    shadowGraphics.translate(
-      shadowGraphics.width / 2 + characterX,
-      shadowGraphics.height - characterMinusY,
-    );
-    shadowGraphics.scale(1, -shadowScale);
-    drawCharacter(p, shadowGraphics, state, "tyc", tycBaseNote);
-  }
-
-  shader.setUniform("uResolution", [p.width / dotUnit, p.height / dotUnit]);
-  shader.setUniform("uColor", [213 / 255, 199 / 255, 209 / 255, 1.0]);
-  shader.setUniform("uBase", mainGraphics);
-  shader.setUniform("uMult", shadowGraphics);
-  bufferGraphics.quad(-1, -1, 1, -1, 1, 1, -1, 1);
 
   using _context = useRendererContext(p);
   p.noSmooth();
-  p.image(bufferGraphics, 0, 0, p.width, p.height);
-  p.translate(p.width / 2, p.height);
+  p.translate(p.width / 2, p.height / 2);
   p.scale(dotUnit);
+  p.translate(0, Math.max(atlasMap["rei"].height, atlasMap["tyc"].height) / 2);
   {
     using _context = useRendererContext(p);
-    p.translate(-characterX, -characterMinusY);
+    p.translate(-characterX, 0);
     drawCharacter(p, p, state, "rei", reiBaseNote);
   }
   {
     using _context = useRendererContext(p);
-    p.translate(characterX, -characterMinusY);
+    p.translate(characterX, 0);
     drawCharacter(p, p, state, "tyc", tycBaseNote);
   }
 });
@@ -243,11 +159,3 @@ const getAlpha = (state: State, spawnMidi: number, persistMidi: number) => {
   }
   return alpha;
 };
-
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    shadowGraphics?.remove();
-    mainGraphics?.remove();
-    bufferGraphics?.remove();
-  });
-}

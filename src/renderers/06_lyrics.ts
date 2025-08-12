@@ -1,6 +1,6 @@
 import type { Note } from "@tonejs/midi/dist/Note";
 import type p5 from "p5";
-import { mainFont, reiColor, tycColor } from "../const";
+import { dotUnit, mainFont, reiColor, tycColor } from "../const";
 import type { State } from "../state";
 import timelineMid, {
   rawMidi as timelineRawMid,
@@ -143,9 +143,9 @@ export const topPadding = 48 + 36 * 2;
 let rightGraphics: p5.Graphics;
 let leftGraphics: p5.Graphics;
 
-const borderRadius = 4;
+const borderRadius = dotUnit;
 
-const fontSize = 36;
+const fontSize = dotUnit * 13;
 const lineHeight = fontSize * 1.2;
 const graphicsWidth = lineHeight * 7;
 

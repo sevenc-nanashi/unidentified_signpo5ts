@@ -9,10 +9,10 @@ export const fill = [0x43, 0xb0, 0xd5];
 
 export const frameRate = 60;
 
-export const dotUnit = 4;
+export const dotUnit = 3;
 
 export const smallFont = "35-55 Font Regular Regular";
-export const mainFont = "美咲ゴシック";
+export const mainFont = "x12y12pxMaruMinya"; // "美咲ゴシック";
 
 export const reiColor = [255, 192, 64] as const;
 export const tycColor = [128, 192, 255] as const;

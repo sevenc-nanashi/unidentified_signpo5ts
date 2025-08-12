@@ -1,10 +1,10 @@
 import type p5 from "p5";
 import chords from "../assets/chord.png";
-import { dotUnit, height, mainFont, smallFont } from "../const";
+import { dotUnit, height, smallFont } from "../const";
 import { easeOutQuint } from "../easing";
 import timelineMid from "../assets/timeline.mid?mid";
 import type { State } from "../state";
-import { useRendererContext } from "../utils";
+import { resizeWithAspectRatio, useRendererContext } from "../utils";
 import { Note } from "@tonejs/midi/dist/Note";
 
 const baseMidi = 60;
@@ -17,19 +17,20 @@ export const preload = import.meta.hmrify((p: p5) => {
   chordImage = p.loadImage(chords);
 });
 
-const destWidth = 682;
-const partWidth = 236;
-const leftPadding = 86;
-const imageLeftPadding = 44;
+// 720/250/535
+const allWidth = 480;
+const innerWidth = (535 / 720) * allWidth;
+const partWidth = (250 / 720) * allWidth;
+const leftPadding = ((720 - 535) / 2 / 720) * allWidth;
 const imageTopPadding = 80;
-const imagePartWidth = 124;
 const rowHeight = 160;
 const lineHeight = 80;
 
 const animationWidth = 4;
 const animationDuration = 0.5;
 
-const padding = dotUnit * 20;
+const baseBottomPadding = dotUnit * 12;
+const yShift = dotUnit * 8;
 
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   if (!chordImage) {
@@ -58,10 +59,18 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   const progress =
     (currentTick - activeChord.ticks) / activeChord.durationTicks;
 
-  const baseX = p.width / 2 - destWidth / 2;
+  const baseX = p.width / 2 - allWidth / 2;
   const isHalf = activeChord.velocity <= 0.5;
-  drawProgressLine();
-  const rate = chordImage.width / destWidth;
+  const drawHeight = resizeWithAspectRatio(
+    {
+      width: chordImage.width,
+      height: rowHeight,
+    },
+    {
+      width: allWidth,
+      height: "here",
+    },
+  );
 
   const isContinued =
     chordTrack.notes.some(
@@ -72,6 +81,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
         note.ticks + note.durationTicks === activeChord.ticks &&
         note.midi === baseMidi - 1,
     );
+  drawProgressLine();
   drawChordImage(activeChord);
   drawChordText();
 
@@ -93,14 +103,19 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     p.drawingContext.shadowColor = "#8888";
     p.drawingContext.shadowBlur = dotUnit;
     if (isHalf) {
-      p.translate((leftPadding + destWidth - partWidth * 2) / 2, 0);
+      p.translate((leftPadding + allWidth - innerWidth * 2) / 2, 0);
     }
+
     p.image(
       chordImage,
       baseX - animationWidth * (1 - easeOutQuint(animationProgress)),
-      p.height - padding - rowHeight / rate + imageTopPadding + dotUnit * 2,
-      destWidth,
-      rowHeight / rate,
+      p.height -
+        baseBottomPadding -
+        yShift -
+        drawHeight +
+        imageTopPadding * (drawHeight / rowHeight),
+      allWidth,
+      drawHeight,
       0,
       rowHeight * index + imageTopPadding,
       chordImage.width,
@@ -147,7 +162,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
           (animationProgress < 0
             ? 1 - easeOutQuint(1 + animationProgress)
             : easeOutQuint(animationProgress)),
-      height - padding - lineHeight / 2 - dotUnit * 8,
+      height - baseBottomPadding - lineHeight / 2 - dotUnit * 8,
     );
   }
 
@@ -157,12 +172,18 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     p.strokeWeight(dotUnit / 2);
     p.noFill();
 
-    const lineY = height - padding - lineHeight / 2;
+    const lineY =
+      p.height -
+      baseBottomPadding -
+      yShift -
+      drawHeight +
+      imageTopPadding * (drawHeight / rowHeight);
+
     let x: number;
     if (isHalf) {
       x = p.lerp(
-        p.width / 2 - partWidth / 2,
-        p.width / 2 + partWidth / 2,
+        p.width / 2 - innerWidth / 2,
+        p.width / 2 + innerWidth / 2,
         progress,
       );
     } else {
@@ -179,13 +200,13 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
           progress,
           0.5,
           1,
-          baseX + destWidth - partWidth - leftPadding,
-          baseX + destWidth - leftPadding,
+          baseX + allWidth - partWidth - leftPadding,
+          baseX + allWidth - leftPadding,
         );
       }
     }
 
-    p.line(x, lineY, x, lineY + lineHeight);
+    p.line(x, lineY + drawHeight / 4, x, lineY + drawHeight * (3 / 4));
     return isHalf;
   }
 });
