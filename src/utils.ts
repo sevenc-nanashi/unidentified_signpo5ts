@@ -45,5 +45,14 @@ export const resizeWithAspectRatio = (
     const ratio = base.width / target.width;
     return base.height / ratio;
   }
-  throw new Error("Either width or height must be 'here' to maintain aspect ratio.");
+  throw new Error(
+    "Either width or height must be 'here' to maintain aspect ratio.",
+  );
+};
+
+export class ExhaustiveError extends Error {
+  constructor(value: never, message = "Exhaustive match failed") {
+    super(`${message}: ${JSON.stringify(value)}`);
+    this.name = "ExhaustiveError";
+  }
 }

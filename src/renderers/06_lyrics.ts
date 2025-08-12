@@ -116,7 +116,7 @@ const verticalText = (
     if (bracketChars.includes(char)) {
       graphics.rotate(Math.PI / 2);
       graphics.textAlign(graphics.LEFT, graphics.CENTER);
-      graphics.text(char, y, -x + graphics.textSize() / 6);
+      graphics.text(char, y + paddingPerChar * 1.5, -x);
     } else if (miniShiftChars.includes(char)) {
       graphics.textAlign(graphics.CENTER, graphics.TOP);
       graphics.text(

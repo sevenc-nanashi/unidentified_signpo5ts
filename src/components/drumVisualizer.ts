@@ -5,7 +5,7 @@ import { easeOutQuint } from "../easing";
 import midi from "../assets/main.mid?mid";
 import type { State } from "../state";
 import { cymbal, drumDefinition } from "../drum.ts";
-import { saturate, useRendererContext } from "../utils.ts";
+import { ExhaustiveError, saturate, useRendererContext } from "../utils.ts";
 import { characterMidi, characterTimeline } from "../tracks.ts";
 import { match, P } from "ts-pattern";
 
@@ -19,6 +19,8 @@ const cellWidth = dotUnit * 12;
 const cellHeight = cellWidth;
 const cellPadding = dotUnit * 3;
 const cellSectionSize = cellWidth * 8 + cellPadding * 7 + dotUnit * 2;
+
+const sixteenthPadding = dotUnit / 2;
 
 export const drumVisualizerWidth =
   cymbalWidthPadded * 2 + cellSectionSize + cymbalSeparatorWidth * 2;
@@ -120,23 +122,23 @@ export const drumVisualizer = (
         tempGraphics,
         x - dotUnit,
         y - dotUnit,
-        cellWidth / 2 + dotUnit - dotUnit / 2,
+        cellWidth / 2 + dotUnit - sixteenthPadding / 2,
         cellHeight + dotUnit * 2,
         0,
         0,
-        cellWidth / 2 + dotUnit - dotUnit / 2,
+        cellWidth / 2 + dotUnit - sixteenthPadding / 2,
         cellHeight + dotUnit * 2,
       );
     } else if (sixteenthType === "right") {
       graphics.image(
         tempGraphics,
-        x + cellWidth / 2 + dotUnit / 2,
+        x + cellWidth / 2 + sixteenthPadding / 2,
         y - dotUnit,
-        cellWidth / 2 + dotUnit - dotUnit / 2,
+        cellWidth / 2 + dotUnit - sixteenthPadding / 2,
         cellHeight + dotUnit * 2,
-        cellWidth / 2 + dotUnit + dotUnit / 2,
+        cellWidth / 2 + dotUnit + sixteenthPadding / 2,
         0,
-        cellWidth / 2 + dotUnit - dotUnit / 2,
+        cellWidth / 2 + dotUnit - sixteenthPadding / 2,
         cellHeight + dotUnit * 2,
       );
     } else {
@@ -163,7 +165,7 @@ type DrumCollection = {
   openHihats: Note[];
 };
 type DrumType = "kick" | "snare" | "clap" | "hihat" | "openHihat" | "star";
-type CellType = "star+kick" | "kick+snare" | DrumType;
+type CellType = "star+kick" | "kick+snare" | "kick+clap" | DrumType;
 
 type GroupedDrum = [Note, DrumType];
 type DrumCell = [Note, CellType];
@@ -390,6 +392,35 @@ function drawDrumUnit(
       );
       break;
     }
+    case "kick+clap": {
+      const height = cellHeight - dotUnit * 4;
+      tempGraphics.rect(
+        dotUnit * 2,
+        dotUnit * 2,
+        (cellWidth - dotUnit * 6) / 3,
+        height * progress,
+      );
+      tempGraphics.rect(
+        dotUnit * 2 + (cellWidth - dotUnit * 6) / 3 + dotUnit,
+        dotUnit * 2 + height * (1 - progress),
+        (cellWidth - dotUnit * 6) / 3,
+        height * progress,
+      );
+      tempGraphics.rect(
+        dotUnit * 2 + (cellWidth - dotUnit * 6) * (2 / 3) + dotUnit * 2,
+        dotUnit * 2 + height * (1 - progress),
+        (cellWidth - dotUnit * 6) / 3,
+        height * progress,
+      );
+      tempGraphics.rect(
+        dotUnit * 2 + (cellWidth - dotUnit * 6) * (2 / 3) + dotUnit * 2,
+        cellHeight - dotUnit * 4,
+        (cellWidth - dotUnit * 6) / 3,
+        dotUnit * 2,
+      );
+
+      break;
+    }
     case "clap": {
       const height = cellHeight - dotUnit * 4;
       tempGraphics.rect(
@@ -449,6 +480,9 @@ function drawDrumUnit(
 
       break;
     }
+    default: {
+      throw new ExhaustiveError(cellType);
+    }
   }
 }
 
@@ -501,6 +535,10 @@ function groupedDrumsByType(flatDrums: GroupedDrum[]): DrumCell[] {
         .with(
           { kick: P.nonNullable.select(), snare: P.nonNullable },
           (kick): DrumCell => [kick, "kick+snare"],
+        )
+        .with(
+          { kick: P.nonNullable.select(), clap: P.nonNullable },
+          (kick): DrumCell => [kick, "kick+clap"],
         )
         .with(
           { kick: P.nonNullable.select() },
