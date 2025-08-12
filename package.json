@@ -1,0 +1,39 @@
+{
+	"name": "-20240815-movie-test",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"scripts:atlas": "node --experimental-strip-types scripts/atlas.ts"
+	},
+	"devDependencies": {
+		"@napi-rs/canvas": "^0.1.77",
+		"@rollup/plugin-yaml": "^4.1.2",
+		"@types/js-yaml": "^4.0.9",
+		"@types/node": "^22.13.4",
+		"@types/p5": "^1.7.6",
+		"js-yaml": "^4.1.0",
+		"sharp": "^0.34.3",
+		"typescript": "^5.9.2",
+		"vite": "^7.1.1",
+		"vite-plugin-arraybuffer": "^0.1.0",
+		"vite-plugin-hmrify": "^0.1.0"
+	},
+	"dependencies": {
+		"@biomejs/biome": "^2.1.4",
+		"@tonejs/midi": "^2.0.28",
+		"midi-file": "^1.2.4",
+		"p5": "1.11.3",
+		"p5-frame-capturer": "^0.4.2",
+		"pixelsort": "link:pixelsort/pkg",
+		"vite-plugin-wasm": "^3.5.0"
+	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"sharp"
+		]
+	}
+}
