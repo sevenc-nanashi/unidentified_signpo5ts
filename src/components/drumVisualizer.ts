@@ -335,19 +335,40 @@ export function drawDrumUnit(
   state: State,
   cellType: CellType,
   measure: number,
-  primaryColor: readonly [number, number, number],
+  color:
+    | readonly [number, number, number]
+    | readonly [readonly [number, number, number], readonly [number, number, number]],
   saturation: number,
   alpha: number,
 ) {
   const progress = Math.min((state.currentMeasure - measure) * 16, 1);
-  const borderColor = [
-    ...saturate(primaryColor, saturation),
-    alpha * progress,
-  ] as [number, number, number, number];
-  const mainColor = [
-    ...saturate(primaryColor, saturation * 0.7 + 0.3),
-    alpha * progress,
-  ] as [number, number, number, number];
+  let borderColor: [number, number, number, number];
+  let mainColor: [number, number, number, number];
+  if (color.length === 3) {
+    borderColor = [...saturate(color, saturation), alpha * progress] as [
+      number,
+      number,
+      number,
+      number,
+    ];
+    mainColor = [
+      ...saturate(color, saturation * 0.7 + 0.3),
+      alpha * progress,
+    ] as [number, number, number, number];
+  } else {
+    borderColor = [...color[0], alpha * progress] as [
+      number,
+      number,
+      number,
+      number,
+    ];
+    mainColor = [...color[1], alpha * progress] as [
+      number,
+      number,
+      number,
+      number,
+    ];
+  }
   tempGraphics.fill(...mainColor);
   switch (cellType) {
     case "star+kick": {
@@ -376,6 +397,22 @@ export function drawDrumUnit(
         dotUnit * 2 + height * (1 - progress),
         dotUnit * 2,
         height * progress,
+      );
+      break;
+    }
+    case "star": {
+      const starHeight = cellHeight - dotUnit * 7;
+      tempGraphics.rect(
+        dotUnit * 5,
+        dotUnit * 2 + starHeight * (1 - progress),
+        cellWidth - dotUnit * 10,
+        starHeight * progress,
+      );
+      tempGraphics.rect(
+        dotUnit * 5,
+        cellHeight - dotUnit * 4,
+        cellWidth - dotUnit * 10,
+        dotUnit * 2,
       );
       break;
     }
