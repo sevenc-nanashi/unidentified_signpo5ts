@@ -3,6 +3,7 @@ import { State } from "../state.ts";
 import timeline from "../assets/timeline.mid?mid";
 
 const flashTimeline = timeline.tracks.find((track) => track.name === "flash")!;
+const blueFlashMidi = 36;
 const flashMidi = 48;
 const fadeMidi = 60;
 
@@ -22,6 +23,27 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
         flashNote.ticks,
         flashNote.ticks + flashNote.durationTicks,
         255 * flashNote.velocity,
+        0,
+      ),
+    );
+  }
+
+  const blueFlashNote = flashTimeline.notes.find(
+    (note) =>
+      note.ticks <= state.currentTick &&
+      state.currentTick < note.ticks + note.durationTicks &&
+      note.midi === blueFlashMidi,
+  );
+  if (blueFlashNote) {
+    p.background(
+      230,
+      240,
+      255,
+      p.map(
+        state.currentTick,
+        blueFlashNote.ticks,
+        blueFlashNote.ticks + blueFlashNote.durationTicks,
+        255 * blueFlashNote.velocity,
         0,
       ),
     );

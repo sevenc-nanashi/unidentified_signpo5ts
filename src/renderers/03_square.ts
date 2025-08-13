@@ -4,7 +4,7 @@ import { colors, dotUnit, height, width } from "../const.ts";
 import { useRendererContext } from "../utils.ts";
 import { DrumDefinition, drumDefinition } from "../drum.ts";
 import { midi } from "../midi.ts";
-import { easeOutQuint } from "../easing.ts";
+import { easeInQuint, easeOutQuint } from "../easing.ts";
 import timeline from "../assets/timeline.mid?mid";
 import { Track } from "@tonejs/midi";
 import * as drumVisualizer from "../components/drumVisualizer.ts";
@@ -34,6 +34,12 @@ const xPerDrum = (drumWidth - drumVisualizer.cellWidth) / (8 - 1);
 
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   const graphics = import.meta.autoGraphics(p, "square", p.width, p.height);
+  const drumGraphics = import.meta.autoGraphics(
+    p,
+    "drum",
+    drumWidth + dotUnit * 2,
+    dotUnit * 2 + drumVisualizer.cellHeight,
+  );
   const drumTempGraphics = import.meta.autoGraphics(
     p,
     "drumTemp",
@@ -64,7 +70,26 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     drawSquare(state, p, graphics);
   }
 
-  drawDrumVisualizer(p, state, graphics, drumTempGraphics, activateNote);
+  {
+    using _context = useRendererContext(drumGraphics);
+    drumGraphics.clear();
+    drumGraphics.noSmooth();
+    drumGraphics.translate(dotUnit, dotUnit);
+    drawDrumVisualizer(p, state, drumGraphics, drumTempGraphics, activateNote);
+    const shift =
+      easeInQuint(p.map(state.currentMeasure % 1, 0.5, 1, 0, 1, true)) * 0.8;
+    graphics.image(
+      drumGraphics,
+      drumBaseX - dotUnit + shift * drumGraphics.width,
+      drumBaseY - dotUnit,
+      drumGraphics.width * (1 - shift),
+      drumGraphics.height,
+      shift * drumGraphics.width,
+      0,
+      drumGraphics.width * (1 - shift),
+      drumGraphics.height,
+    );
+  }
 
   p.image(graphics, 0, 0, p.width, p.height);
 });
@@ -183,12 +208,7 @@ function drawDrumVisualizer(
     const measure = midi.header.ticksToMeasures(note.ticks);
     const measureDivision =
       Math.floor((measure % 1) * numBeats + 0.00001) + (8 - numBeats);
-    const sliceType = drumVisualizer.getSliceType(
-      measure,
-      note,
-      flatDrums,
-      numBeats,
-    );
+    const sliceType = drumVisualizer.getSliceType(note, flatDrums);
     let alpha = 255;
     if (measure < Math.floor(state.currentMeasure)) {
       const progress = Math.min((state.currentMeasure % 1) / 0.5, 1);
@@ -228,8 +248,8 @@ function drawDrumVisualizer(
       alpha,
     );
     const drawRect = drumVisualizer.drawRects[sliceType];
-    const x = drumBaseX + xPerDrum * measureDivision;
-    const y = drumBaseY;
+    const x = xPerDrum * measureDivision;
+    const y = 0;
     graphics.image(
       tempGraphics,
       x + drawRect.x,

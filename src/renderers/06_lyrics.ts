@@ -121,8 +121,8 @@ const verticalText = (
       graphics.textAlign(graphics.CENTER, graphics.TOP);
       graphics.text(
         char,
-        x + graphics.textSize() / 8,
-        y - graphics.textSize() / 4,
+        x + dotUnit,
+        y - dotUnit * 2,
       );
     } else if (shiftChars.includes(char)) {
       graphics.textAlign(graphics.CENTER, graphics.TOP);

@@ -5,7 +5,14 @@ import { easeOutQuint } from "../easing";
 import midi from "../assets/main.mid?mid";
 import type { State } from "../state";
 import { cymbal, drumDefinition } from "../drum.ts";
-import { ExhaustiveError, saturate, useRendererContext } from "../utils.ts";
+import {
+  ExhaustiveError,
+  gcd,
+  lcm,
+  rationalize,
+  saturate,
+  useRendererContext,
+} from "../utils.ts";
 import { characterMidi, characterTimeline } from "../tracks.ts";
 import { match, P } from "ts-pattern";
 
@@ -20,9 +27,19 @@ export const cellHeight = cellWidth;
 const cellPadding = dotUnit * 3;
 const cellSectionSize = cellWidth * 8 + cellPadding * 7 + dotUnit * 2;
 
-const sixteenthPadding = dotUnit / 2;
+const dividePadding = 2;
 
-type SliceType = "1/1" | "1/2" | "2/2";
+type SliceType =
+  | "1/1"
+  | "1/2"
+  | "2/2"
+  | "1/3"
+  | "2/3"
+  | "3/3"
+  | "1/4"
+  | "2/4"
+  | "3/4"
+  | "4/4";
 export const drawRects = {
   "1/1": {
     x: -dotUnit,
@@ -33,14 +50,56 @@ export const drawRects = {
   "1/2": {
     x: -dotUnit,
     y: -dotUnit,
-    width: dotUnit + cellWidth / 2 - sixteenthPadding / 2,
+    width: dotUnit + cellWidth / 2 - dividePadding / 2,
     height: cellHeight + dotUnit * 2,
   },
   "2/2": {
-    x: cellWidth / 2 + sixteenthPadding / 2,
+    x: cellWidth / 2 + dividePadding / 2,
     y: -dotUnit,
-    width: sixteenthPadding / 2 + cellWidth / 2 + dotUnit,
+    width: dividePadding / 2 + cellWidth / 2 + dotUnit,
     height: cellHeight + dotUnit * 2,
+  },
+  "1/3": {
+    x: -dotUnit,
+    y: -dotUnit,
+    width: dotUnit + cellWidth / 3 - dividePadding / 2,
+    height: cellHeight + dotUnit * 2,
+  },
+  "2/3": {
+    x: cellWidth / 3 + dividePadding / 2,
+    y: -dotUnit,
+    width: cellWidth / 3 - dividePadding,
+    height: cellHeight + dotUnit * 2,
+  },
+  "3/3": {
+    x: (cellWidth * 2) / 3 + dividePadding / 2,
+    y: -dotUnit,
+    width: cellWidth / 3 - dividePadding / 2 + dotUnit,
+    height: cellHeight + dotUnit * 2,
+  },
+  "1/4": {
+    x: -dotUnit,
+    y: -dotUnit,
+    width: dotUnit + cellWidth / 2 - dividePadding / 2,
+    height: dotUnit + cellHeight / 2 - dividePadding / 2,
+  },
+  "2/4": {
+    x: cellWidth / 2 + dividePadding / 2,
+    y: -dotUnit,
+    width: dividePadding / 2 + cellWidth / 2 + dotUnit,
+    height: dotUnit + cellHeight / 2 - dividePadding / 2,
+  },
+  "3/4": {
+    x: -dotUnit,
+    y: cellHeight / 2 + dividePadding / 2,
+    width: dotUnit + cellWidth / 2 - dividePadding / 2,
+    height: dividePadding / 2 + cellHeight / 2 + dotUnit,
+  },
+  "4/4": {
+    x: cellWidth / 2 + dividePadding / 2,
+    y: cellHeight / 2 + dividePadding / 2,
+    width: dividePadding / 2 + cellWidth / 2 + dotUnit,
+    height: dividePadding / 2 + cellHeight / 2 + dotUnit,
   },
 } satisfies Record<
   SliceType,
@@ -75,7 +134,7 @@ export const drumVisualizer = (
     const measure = midi.header.ticksToMeasures(note.ticks);
     const measureDivision =
       Math.floor((measure % 1) * numBeats + 0.00001) + (8 - numBeats);
-    const sliceType = getSliceType(measure, note, flatDrums, numBeats);
+    const sliceType = getSliceType(note, flatDrums);
     const x =
       -cymbalWidthPadded -
       cymbalSeparatorWidth -
@@ -148,7 +207,11 @@ type CellType = "star+kick" | "kick+snare" | "kick+clap" | DrumType;
 
 type GroupedDrum = [Note, DrumType];
 type DrumCell = [Note, CellType];
-export function collectDrums(state: State, activateNote: Note, prevExpand: number): DrumCollection {
+export function collectDrums(
+  state: State,
+  activateNote: Note,
+  prevExpand: number,
+): DrumCollection {
   let shootingStar: Note | undefined;
   const kicks: Note[] = [];
   const snares: Note[] = [];
@@ -550,25 +613,25 @@ export function groupedDrumsByType(flatDrums: GroupedDrum[]): DrumCell[] {
   return result;
 }
 
-export function getSliceType(
-  measure: number,
-  note: Note,
-  flatDrums: GroupedDrum[],
-  beats: number,
-): SliceType {
-  let sixteenthType: "1/1" | "1/2" | "2/2" = "1/1";
-  if (Math.floor((measure % 1) * beats * 2 + 0.00001) % 2 === 1) {
-    sixteenthType = "2/2";
-  } else if (
-    flatDrums.some(
-      ([drum]) =>
-        drum.ticks > note.ticks &&
-        drum.ticks <= note.ticks + midi.header.ppq / 4,
-    )
-  ) {
-    sixteenthType = "1/2";
-  }
-  return sixteenthType;
+const quantize = midi.header.ppq / 2;
+export function getSliceType(note: Note, flatDrums: GroupedDrum[]): SliceType {
+  const drumsInBeat = flatDrums.filter(
+    ([drum]) =>
+      Math.floor(drum.ticks / quantize) === Math.floor(note.ticks / quantize),
+  );
+  const rationalized = drumsInBeat.map(([drum]) => {
+    const ticks = drum.ticks % quantize;
+    return rationalize(ticks, quantize);
+  });
+  const numDrumsInBeat = rationalized.reduce(
+    (prev, curr) => lcm(prev, curr[1]),
+    1,
+  );
+  const index = Math.round(
+    ((note.ticks % quantize) / quantize) * numDrumsInBeat,
+  );
+
+  return `${index + 1}/${numDrumsInBeat}` as SliceType;
 }
 
 export function getNumBeats(ticks: number): number {
