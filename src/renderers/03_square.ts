@@ -5,6 +5,12 @@ import { useRendererContext } from "../utils.ts";
 import { drumDefinition } from "../drum.ts";
 import { midi } from "../midi.ts";
 import { easeOutQuint } from "../easing.ts";
+import timeline from "../assets/timeline.mid?mid";
+
+const visualizerTimeline = timeline.tracks.find(
+  (track) => track.name === "visualizer",
+)!;
+const activateMidi = 61;
 
 const size = height * 0.35;
 const expand = size * 0.1;
@@ -13,6 +19,13 @@ const expandDuration = 0.25;
 const effectDuration = 1;
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   const graphics = import.meta.autoGraphics(p, "square", p.width, p.height);
+  const activateNote = visualizerTimeline.notes.find(
+    (note) =>
+      note.ticks <= state.currentTick &&
+      state.currentTick < note.ticks + note.durationTicks &&
+      note.midi === activateMidi,
+  );
+  if (!activateNote) return;
 
   let currentSize = size;
   using _context = useRendererContext(graphics);

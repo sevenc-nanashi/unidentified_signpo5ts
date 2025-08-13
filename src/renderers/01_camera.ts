@@ -17,12 +17,15 @@ const cornerPadding = dotUnit * 8;
 let mainGraphics: p5.Graphics;
 
 export const draw = import.meta.hmrify((p: p5, state: State) => {
-  if (!mainGraphics) {
-    mainGraphics = p.createGraphics(p.width, p.height);
-    mainGraphics.textFont(mainFont);
-    mainGraphics.textAlign(mainGraphics.CENTER, mainGraphics.CENTER);
-    mainGraphics.textSize(dotUnit * 6);
-  }
+  mainGraphics = import.meta.autoGraphics(
+    p,
+    "visualizerMain",
+    p.width,
+    p.height,
+  );
+  mainGraphics.textFont(mainFont);
+  mainGraphics.textAlign(mainGraphics.CENTER, mainGraphics.CENTER);
+  mainGraphics.textSize(dotUnit * 6);
   mainGraphics.clear();
 
   const tempGraphics = import.meta.autoGraphics(

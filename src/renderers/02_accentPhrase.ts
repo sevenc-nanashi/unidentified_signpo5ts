@@ -87,7 +87,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   );
 
   using _context = useRendererContext(p);
-  p.translate(p.width / 2, p.height * (1 / 5));
+  p.translate(p.width / 2, p.height * (1 / 8));
 
   const leftX = -width / 2;
   const rightX = +width / 2;
