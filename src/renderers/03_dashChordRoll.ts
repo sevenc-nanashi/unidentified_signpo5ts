@@ -67,33 +67,26 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     if (rightX < 0 || leftX > areaWidth) continue;
 
     const y = (topMidi - note.midi) * noteHeight;
-    // const isActive =
-    //   note.ticks <= state.currentTick &&
-    //   state.currentTick < note.ticks + note.durationTicks;
-    //
-    // graphics.fill(255, isActive ? 255 : 64);
-    graphics.fill(
+    const alpha = p.map(
+      Math.ceil(
+        easeOutQuint(
+          p.map(
+            state.currentTick,
+            note.ticks + note.durationTicks,
+            note.ticks + note.durationTicks + activeDuration,
+            0,
+            1,
+            true,
+          ),
+        ) / alphaQuantization,
+      ) * alphaQuantization,
+      0,
+      1,
       255,
-      p.map(
-        Math.ceil(
-          easeOutQuint(
-            p.map(
-              state.currentTick,
-              note.ticks + note.durationTicks,
-              note.ticks + note.durationTicks + activeDuration,
-              0,
-              1,
-              true,
-            ),
-          ) / alphaQuantization,
-        ) * alphaQuantization,
-        0,
-        1,
-        255,
-        64,
-        true,
-      ),
+      64,
+      true,
     );
+    graphics.fill(255, alpha);
     graphics.rect(leftX, y, rightX - leftX, noteHeight);
   }
 
