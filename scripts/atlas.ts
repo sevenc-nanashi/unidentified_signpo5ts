@@ -171,8 +171,8 @@ await fs.writeFile(
   canvasElement.toBuffer("image/png"),
 );
 
-const numUnnamedSlices = slices.filter(
-  (slice) => !slice.name.startsWith("slice-"),
+const numUnnamedSlices = slices.filter((slice) =>
+  slice.name.startsWith("slice-"),
 );
 
 console.log(

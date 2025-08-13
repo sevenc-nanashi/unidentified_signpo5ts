@@ -32,6 +32,7 @@ export const drumDefinition = [
       snare: 37,
       hihat: 38,
       openHihat: 39,
+      clap: 40,
     },
   ],
   [

@@ -63,11 +63,11 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     graphics.stroke(255);
 
     for (const [track, notes] of drumDefinition) {
-      drawKickEffects(p, graphics, state, track, notes);
-      drawSnareEffects(p, graphics, state, track, notes);
+      drawKickEffects(p, graphics, state, track, notes, activateNote);
+      drawSnareEffects(p, graphics, state, track, notes, activateNote);
     }
 
-    drawSquare(state, p, graphics);
+    drawSquare(state, p, graphics, activateNote);
   }
 
   {
@@ -99,9 +99,11 @@ function drawKickEffects(
   state: State,
   track: Track,
   notes: Partial<DrumDefinition>,
+  activateNote: Note,
 ) {
   const activeKicks = track.notes.filter(
     (note) =>
+      note.ticks > activateNote.ticks &&
       note.ticks <= state.currentTick &&
       midi.header.ticksToMeasures(note.ticks) + effectDuration >
         state.currentMeasure &&
@@ -127,7 +129,12 @@ function drawKickEffects(
   }
 }
 
-function drawSquare(state: State, p: p5, graphics: p5.Graphics) {
+function drawSquare(
+  state: State,
+  p: p5,
+  graphics: p5.Graphics,
+  activateNote: Note,
+) {
   let currentSize = size;
   for (const [track, notes] of drumDefinition) {
     if (!notes.kick) {
@@ -135,7 +142,10 @@ function drawSquare(state: State, p: p5, graphics: p5.Graphics) {
     }
 
     const lastKick = track.notes.findLast(
-      (note) => note.ticks <= state.currentTick && note.midi === notes.kick,
+      (note) =>
+        note.ticks > activateNote.ticks &&
+        note.ticks <= state.currentTick &&
+        note.midi === notes.kick,
     );
 
     if (lastKick) {
@@ -164,9 +174,11 @@ function drawSnareEffects(
   state: State,
   track: Track,
   notes: Partial<DrumDefinition>,
+  activateNote: Note,
 ) {
   const activeSnares = track.notes.filter(
     (note) =>
+      note.ticks > activateNote.ticks &&
       note.ticks <= state.currentTick &&
       midi.header.ticksToMeasures(note.ticks) + snareExpandDuration >
         state.currentMeasure &&

@@ -63,14 +63,23 @@ const drawCharacter = (
   const footPixel = atlas.yellowPixels[2];
   const footY = footPixel[1] - atlas.start[1];
 
-  const isOpen = !bridgeTrack.notes.find(
+  const isClosed = bridgeTrack.notes.find(
     (note) =>
       note.midi === baseMidi + 4 &&
       note.ticks <= state.currentTick &&
       state.currentTick < note.ticks + note.durationTicks,
   );
+  const isOpen2 = bridgeTrack.notes.find(
+    (note) =>
+      note.midi === baseMidi + 5 &&
+      note.ticks <= state.currentTick &&
+      state.currentTick < note.ticks + note.durationTicks,
+  );
 
-  const eyeAtlas = atlasMap[`${name}_eyes_${isOpen ? "open" : "closed"}`];
+  const eyeAtlas =
+    atlasMap[
+      `${name}_eyes_${isOpen2 ? "open2" : isClosed ? "closed" : "open"}`
+    ];
   const eyePixel = atlas.yellowPixels[0];
   const eyePixelDiff = [
     eyePixel[0] - atlas.start[0],

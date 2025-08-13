@@ -444,21 +444,21 @@ export function drawDrumUnit(
       );
       tempGraphics.rect(
         dotUnit * 2 + (cellWidth - dotUnit * 6) / 3 + dotUnit,
-        dotUnit * 2 + height * (1 - progress),
+        dotUnit * 2 + (height / 2) * (1 - progress),
         (cellWidth - dotUnit * 6) / 3,
-        height * progress,
+        (height / 2) * progress,
+      );
+      tempGraphics.rect(
+        dotUnit * 2 + (cellWidth - dotUnit * 6) / 3 + dotUnit,
+        dotUnit * 2 + height / 2,
+        (cellWidth - dotUnit * 6) / 3,
+        (height / 2) * progress,
       );
       tempGraphics.rect(
         dotUnit * 2 + (cellWidth - dotUnit * 6) * (2 / 3) + dotUnit * 2,
         dotUnit * 2 + height * (1 - progress),
         (cellWidth - dotUnit * 6) / 3,
         height * progress,
-      );
-      tempGraphics.rect(
-        dotUnit * 2 + (cellWidth - dotUnit * 6) * (2 / 3) + dotUnit * 2,
-        cellHeight - dotUnit * 4,
-        (cellWidth - dotUnit * 6) / 3,
-        dotUnit * 2,
       );
 
       break;
@@ -575,12 +575,12 @@ export function groupedDrumsByType(flatDrums: GroupedDrum[]): DrumCell[] {
           (star): DrumCell => [star, "star+kick"],
         )
         .with(
-          { kick: P.nonNullable.select(), snare: P.nonNullable },
-          (kick): DrumCell => [kick, "kick+snare"],
-        )
-        .with(
           { kick: P.nonNullable.select(), clap: P.nonNullable },
           (kick): DrumCell => [kick, "kick+clap"],
+        )
+        .with(
+          { kick: P.nonNullable.select(), snare: P.nonNullable },
+          (kick): DrumCell => [kick, "kick+snare"],
         )
         .with(
           { kick: P.nonNullable.select() },
