@@ -31,12 +31,12 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   p.translate(0, Math.max(atlasMap["rei"].height, atlasMap["tyc"].height) / 2);
   {
     using _context = useRendererContext(p);
-    p.translate(-characterX, 0);
+    p.translate(characterX, 0);
     drawCharacter(p, p, state, "rei", reiBaseNote);
   }
   {
     using _context = useRendererContext(p);
-    p.translate(characterX, 0);
+    p.translate(-characterX, 0);
     drawCharacter(p, p, state, "tyc", tycBaseNote);
   }
 });

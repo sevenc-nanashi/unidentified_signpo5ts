@@ -15,12 +15,37 @@ const cymbalWidth = dotUnit * 6;
 const cymbalPadding = dotUnit * 1;
 const cymbalWidthPadded = cymbalWidth + cymbalPadding;
 const cymbalSeparatorWidth = dotUnit * 1;
-const cellWidth = dotUnit * 12;
-const cellHeight = cellWidth;
+export const cellWidth = dotUnit * 12;
+export const cellHeight = cellWidth;
 const cellPadding = dotUnit * 3;
 const cellSectionSize = cellWidth * 8 + cellPadding * 7 + dotUnit * 2;
 
 const sixteenthPadding = dotUnit / 2;
+
+type SliceType = "1/1" | "1/2" | "2/2";
+export const drawRects = {
+  "1/1": {
+    x: -dotUnit,
+    y: -dotUnit,
+    width: dotUnit + cellWidth + dotUnit,
+    height: dotUnit + cellHeight + dotUnit,
+  },
+  "1/2": {
+    x: -dotUnit,
+    y: -dotUnit,
+    width: dotUnit + cellWidth / 2 - sixteenthPadding / 2,
+    height: cellHeight + dotUnit * 2,
+  },
+  "2/2": {
+    x: cellWidth / 2 + sixteenthPadding / 2,
+    y: -dotUnit,
+    width: sixteenthPadding / 2 + cellWidth / 2 + dotUnit,
+    height: cellHeight + dotUnit * 2,
+  },
+} satisfies Record<
+  SliceType,
+  { x: number; y: number; width: number; height: number }
+>;
 
 export const drumVisualizerWidth =
   cymbalWidthPadded * 2 + cellSectionSize + cymbalSeparatorWidth * 2;
@@ -37,7 +62,7 @@ export const drumVisualizer = (
 
   drawCymbal(activateNote, state, graphics);
 
-  const drums = collectDrums(state, activateNote);
+  const drums = collectDrums(state, activateNote, 2);
   const flatDrums = flattenDrums(drums);
   const groupedDrums = groupedDrumsByType(flatDrums);
 
@@ -46,28 +71,11 @@ export const drumVisualizer = (
       continue;
     }
 
-    const noteTimeSignature = midi.header.timeSignatures.findLast(
-      (v) => v.ticks <= note.ticks,
-    )!;
-    const beats =
-      (noteTimeSignature.timeSignature[0] /
-        noteTimeSignature.timeSignature[1]) *
-      8;
+    const numBeats = getNumBeats(note.ticks);
     const measure = midi.header.ticksToMeasures(note.ticks);
     const measureDivision =
-      Math.floor((measure % 1) * beats + 0.00001) + (8 - beats);
-    let sixteenthType: "none" | "left" | "right" = "none";
-    if (Math.floor((measure % 1) * beats * 2 + 0.00001) % 2 === 1) {
-      sixteenthType = "right";
-    } else if (
-      flatDrums.some(
-        ([drum]) =>
-          drum.ticks > note.ticks &&
-          drum.ticks <= note.ticks + midi.header.ppq / 4,
-      )
-    ) {
-      sixteenthType = "left";
-    }
+      Math.floor((measure % 1) * numBeats + 0.00001) + (8 - numBeats);
+    const sliceType = getSliceType(measure, note, flatDrums, numBeats);
     const x =
       -cymbalWidthPadded -
       cymbalSeparatorWidth -
@@ -80,16 +88,13 @@ export const drumVisualizer = (
     if (measure < Math.floor(state.currentMeasure)) {
       const progress = Math.min((state.currentMeasure % 1) / 0.5, 1);
       const eased = easeOutQuint(progress);
-      // y +=
-      //   shiftHeight * eased +
-      //   shiftHeight * (Math.floor(currentMeasure) - Math.floor(measure) - 1);
       alpha =
         state.currentMeasure - measure <= 1
           ? 96 * (1 - eased) + 64
           : (measure - state.currentMeasure - 1) * 64;
     }
     let saturation = 0.5 - (alpha / 255) * 0.5;
-    if (sixteenthType !== "none") {
+    if (sliceType !== "1/1") {
       saturation += 0.5;
       saturation = Math.min(saturation, 1);
     }
@@ -117,43 +122,17 @@ export const drumVisualizer = (
       saturation,
       alpha,
     );
-    if (sixteenthType === "left") {
-      graphics.image(
-        tempGraphics,
-        x - dotUnit,
-        y - dotUnit,
-        cellWidth / 2 + dotUnit - sixteenthPadding / 2,
-        cellHeight + dotUnit * 2,
-        0,
-        0,
-        cellWidth / 2 + dotUnit - sixteenthPadding / 2,
-        cellHeight + dotUnit * 2,
-      );
-    } else if (sixteenthType === "right") {
-      graphics.image(
-        tempGraphics,
-        x + cellWidth / 2 + sixteenthPadding / 2,
-        y - dotUnit,
-        cellWidth / 2 + dotUnit - sixteenthPadding / 2,
-        cellHeight + dotUnit * 2,
-        cellWidth / 2 + dotUnit + sixteenthPadding / 2,
-        0,
-        cellWidth / 2 + dotUnit - sixteenthPadding / 2,
-        cellHeight + dotUnit * 2,
-      );
-    } else {
-      graphics.image(
-        tempGraphics,
-        x - dotUnit,
-        y - dotUnit,
-        cellWidth + dotUnit * 2,
-        cellHeight + dotUnit * 2,
-        0,
-        0,
-        cellWidth + dotUnit * 2,
-        cellHeight + dotUnit * 2,
-      );
-    }
+    graphics.image(
+      tempGraphics,
+      x + drawRects[sliceType].x,
+      y + drawRects[sliceType].y,
+      drawRects[sliceType].width,
+      drawRects[sliceType].height,
+      drawRects[sliceType].x + dotUnit,
+      drawRects[sliceType].y + dotUnit,
+      drawRects[sliceType].width,
+      drawRects[sliceType].height,
+    );
   }
 };
 type DrumCollection = {
@@ -169,7 +148,7 @@ type CellType = "star+kick" | "kick+snare" | "kick+clap" | DrumType;
 
 type GroupedDrum = [Note, DrumType];
 type DrumCell = [Note, CellType];
-function collectDrums(state: State, activateNote: Note): DrumCollection {
+export function collectDrums(state: State, activateNote: Note, prevExpand: number): DrumCollection {
   let shootingStar: Note | undefined;
   const kicks: Note[] = [];
   const snares: Note[] = [];
@@ -178,7 +157,7 @@ function collectDrums(state: State, activateNote: Note): DrumCollection {
   const claps: Note[] = [];
 
   const currentMeasure = state.currentMeasure;
-  const startMeasure = Math.max(0, Math.floor(currentMeasure) - 2);
+  const startMeasure = Math.max(0, Math.floor(currentMeasure) - prevExpand);
   const endMeasure = Math.floor(currentMeasure) + 1;
   for (const [track, definition] of drumDefinition) {
     for (const note of track.notes) {
@@ -214,7 +193,7 @@ function collectDrums(state: State, activateNote: Note): DrumCollection {
   };
 }
 
-function drawBeatGrid(state: State, graphics: p5) {
+export function drawBeatGrid(state: State, graphics: p5) {
   const currentTimeSignature = midi.header.timeSignatures.findLast(
     (v) => v.ticks <= state.currentTick,
   )!;
@@ -247,7 +226,7 @@ function drawBeatGrid(state: State, graphics: p5) {
   }
 }
 
-function drawCymbal(activateNote: Note, state: State, graphics: p5) {
+export function drawCymbal(activateNote: Note, state: State, graphics: p5) {
   const lastCymbal = [
     subDrum.notes.findLast(
       (note) =>
@@ -286,7 +265,7 @@ function drawCymbal(activateNote: Note, state: State, graphics: p5) {
   }
 }
 
-function drawDrumUnit(
+export function drawDrumUnit(
   tempGraphics: p5.Graphics,
   state: State,
   cellType: CellType,
@@ -486,7 +465,7 @@ function drawDrumUnit(
   }
 }
 
-function flattenDrums(drums: DrumCollection): GroupedDrum[] {
+export function flattenDrums(drums: DrumCollection): GroupedDrum[] {
   return [
     drums.shootingStar && ([drums.shootingStar, "star"] as GroupedDrum),
     ...drums.claps.map((note): GroupedDrum => [note, "clap"]),
@@ -498,7 +477,7 @@ function flattenDrums(drums: DrumCollection): GroupedDrum[] {
     .filter((drum) => drum !== undefined)
     .toSorted((a, b) => a[0].ticks - b[0].ticks);
 }
-function groupedDrumsByType(flatDrums: GroupedDrum[]): DrumCell[] {
+export function groupedDrumsByType(flatDrums: GroupedDrum[]): DrumCell[] {
   const ticks = new Map<
     number,
     {
@@ -569,4 +548,35 @@ function groupedDrumsByType(flatDrums: GroupedDrum[]): DrumCell[] {
     .filter((cell): cell is DrumCell => cell !== undefined);
 
   return result;
+}
+
+export function getSliceType(
+  measure: number,
+  note: Note,
+  flatDrums: GroupedDrum[],
+  beats: number,
+): SliceType {
+  let sixteenthType: "1/1" | "1/2" | "2/2" = "1/1";
+  if (Math.floor((measure % 1) * beats * 2 + 0.00001) % 2 === 1) {
+    sixteenthType = "2/2";
+  } else if (
+    flatDrums.some(
+      ([drum]) =>
+        drum.ticks > note.ticks &&
+        drum.ticks <= note.ticks + midi.header.ppq / 4,
+    )
+  ) {
+    sixteenthType = "1/2";
+  }
+  return sixteenthType;
+}
+
+export function getNumBeats(ticks: number): number {
+  const noteTimeSignature = midi.header.timeSignatures.findLast(
+    (v) => v.ticks <= ticks,
+  )!;
+  const beats =
+    (noteTimeSignature.timeSignature[0] / noteTimeSignature.timeSignature[1]) *
+    8;
+  return Math.round(beats);
 }
