@@ -2,8 +2,12 @@ import { Midi, Track } from "@tonejs/midi";
 import data from "./assets/main.mid?uint8array";
 import { MidiData } from "midi-file";
 import { Note } from "@tonejs/midi/dist/Note";
+import ustData from "./assets/main.ustx?uint8array";
+import { Project } from "@sevenc-nanashi/utaformatix-ts";
 
 export const midi = new Midi(data);
+export const ust = await Project.fromUstx(ustData);
+export const ustToMidiMultiplier = midi.header.ppq / 480;
 midi.tracks = midi.tracks.filter((track) => !track.name.startsWith("#"));
 
 export const loadTimelineWithText = (

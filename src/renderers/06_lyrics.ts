@@ -148,7 +148,7 @@ const fontSize = dotUnit * 13;
 const lineHeight = fontSize * 1.2;
 const graphicsWidth = lineHeight * 7;
 export const sidePadding = 24 + fontSize * 2;
-export const topPadding = 48 + fontSize * 4;
+export const topPadding = 48 + fontSize * 2;
 
 const fg = [255, 255, 255] as const;
 

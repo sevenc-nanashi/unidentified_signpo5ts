@@ -25,6 +25,7 @@
 	},
 	"dependencies": {
 		"@biomejs/biome": "^2.1.4",
+		"@sevenc-nanashi/utaformatix-ts": "jsr:^0.4.0",
 		"@tonejs/midi": "^2.0.28",
 		"midi-file": "^1.2.4",
 		"p5": "1",

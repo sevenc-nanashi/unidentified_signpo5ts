@@ -140,6 +140,10 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       0,
       cpuGraphics.width,
       cpuGraphics.height,
+      0,
+      0,
+      loadedImages[backgroundName].width,
+      loadedImages[backgroundName].height,
     );
     if (sortNote) {
       cpuGraphics.loadPixels();

@@ -1,10 +1,8 @@
 import p5 from "p5";
 import { State } from "../state.ts";
-import { dotUnit, height, width } from "../const.ts";
+import { dotUnit, height, reiColor, tycColor, width } from "../const.ts";
 import { useRendererContext } from "../utils.ts";
-import { drumDefinition } from "../drum.ts";
-import { midi } from "../midi.ts";
-import { easeOutQuint } from "../easing.ts";
+import { midi, ust, ustToMidiMultiplier } from "../midi.ts";
 import timeline from "../assets/timeline.mid?mid";
 import { Note } from "@tonejs/midi/dist/Note";
 
@@ -13,6 +11,8 @@ const visualizerTimeline = timeline.tracks.find(
 )!;
 const activateMidi = 62;
 const chordTrack = midi.tracks.find((track) => track.name === "LABS")!;
+const tycChorusTrack = ust.tracks[2];
+const reiChorusTrack = ust.tracks[3];
 
 const topMidi = 74;
 const baseY = height * 0.75;
@@ -62,7 +62,24 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       note.ticks <= state.currentTick &&
       state.currentTick < note.ticks + note.durationTicks;
 
-    graphics.fill(255, isActive ? 255 : 64);
+    const hasTycChorus = tycChorusTrack.notes.some(
+      (chorusNote) =>
+        Math.floor(chorusNote.tickOn * ustToMidiMultiplier) === note.ticks &&
+        chorusNote.key === note.midi,
+    );
+    const hasReiChorus = reiChorusTrack.notes.some(
+      (chorusNote) =>
+        Math.floor(chorusNote.tickOn * ustToMidiMultiplier) === note.ticks &&
+        chorusNote.key === note.midi,
+    );
+
+    if (hasTycChorus) {
+      graphics.fill(...tycColor, isActive ? 255 : 64);
+    } else if (hasReiChorus) {
+      graphics.fill(...reiColor, isActive ? 255 : 64);
+    } else {
+      graphics.fill(255, isActive ? 255 : 64);
+    }
     graphics.rect(leftX, y, rightX - leftX, noteHeight);
   }
 
