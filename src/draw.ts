@@ -73,15 +73,19 @@ const keydown = (p: p5, state: State) => (e: KeyboardEvent) => {
     state.playing = !state.playing;
   }
   if (e.key === "ArrowRight") {
-    state.currentFrame += frameRate * 5;
-    audioElement.currentTime = state.currentFrame / frameRate;
+    audioElement.currentTime = state.currentFrame / frameRate + 5;
   }
   if (e.key === "ArrowLeft") {
-    state.currentFrame -= frameRate * 5;
-    if (state.currentFrame < 0) {
-      state.currentFrame = 0;
+    // state.currentFrame -= frameRate * 5;
+    // if (state.currentFrame < 0) {
+    //   state.currentFrame = 0;
+    // }
+    // audioElement.currentTime = state.currentFrame / frameRate;
+    if (audioElement.currentTime > 5) {
+      audioElement.currentTime -= 5;
+    } else {
+      audioElement.currentTime = 0;
     }
-    audioElement.currentTime = state.currentFrame / frameRate;
   }
   if (e.key === "ArrowUp") {
     audioElement.volume += 0.1;

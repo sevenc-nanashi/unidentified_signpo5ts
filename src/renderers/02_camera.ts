@@ -56,7 +56,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   }
   {
     using _context = useRendererContext(p);
-    p.drawingContext.shadowColor = "#8888";
+    p.drawingContext.shadowColor = "#444f";
     p.drawingContext.shadowBlur = dotUnit;
     p.image(mainGraphics, 0, 0, p.width, p.height);
   }

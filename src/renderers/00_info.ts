@@ -4,19 +4,22 @@ import { smallFont } from "../const.ts";
 import { state as capturerState } from "p5-frame-capturer";
 import { useRendererContext } from "../utils.ts";
 
+const drawLine = false;
 const numVLines = 9;
 const numHLines = 9;
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   using _context = useRendererContext(p);
-  for (let i = 0; i < numVLines; i++) {
-    const x = (i + 1) * (p.width / (numVLines + 1));
-    p.stroke(255, 100);
-    p.line(x, 0, x, p.height);
-  }
-  for (let i = 0; i < numHLines; i++) {
-    const y = (i + 1) * (p.height / (numHLines + 1));
-    p.stroke(255, 100);
-    p.line(0, y, p.width, y);
+  if (drawLine) {
+    for (let i = 0; i < numVLines; i++) {
+      const x = (i + 1) * (p.width / (numVLines + 1));
+      p.stroke(255, 100);
+      p.line(x, 0, x, p.height);
+    }
+    for (let i = 0; i < numHLines; i++) {
+      const y = (i + 1) * (p.height / (numHLines + 1));
+      p.stroke(255, 100);
+      p.line(0, y, p.width, y);
+    }
   }
 
   if (!capturerState.isCapturing) {

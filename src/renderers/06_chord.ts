@@ -100,7 +100,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     }
 
     p.tint(255, 255 * easeOutQuint(animationProgress));
-    p.drawingContext.shadowColor = "#8888";
+    p.drawingContext.shadowColor = "#444f";
     p.drawingContext.shadowBlur = dotUnit;
     if (isHalf) {
       p.translate(innerWidth - partWidth - partWidth / 2, 0);

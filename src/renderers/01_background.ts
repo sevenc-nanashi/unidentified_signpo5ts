@@ -12,9 +12,9 @@ import type { State } from "../state";
 import { saturate, useRendererContext } from "../utils";
 
 const imageSwitchMid = 60;
-const pixelsortInMid = 61;
-const pixelsortOutMid = 62;
-const alphaInMid = 63;
+const alphaInMid = 59;
+const pixelsortOutMid = 58;
+const pixelsortInMid = 57;
 
 const backgroundTrack = loadTimelineWithText(
   "backgrounds",
@@ -25,7 +25,7 @@ const backgroundTrack = loadTimelineWithText(
   },
 );
 
-const images = import.meta.glob("../assets/backgrounds/*.png", {
+const images = import.meta.glob("../assets/backgrounds/*.{png,jpg}", {
   eager: true,
 }) as Record<string, { default: string }>;
 
@@ -53,7 +53,19 @@ const minusScale = 1 / 4;
 export const preload = import.meta.hmrify((p: p5) => {
   for (const [path, image] of Object.entries(images)) {
     const filename = path.split("/").pop()!;
-    loadedImages[filename] = p.loadImage(image.default);
+    if (import.meta.hot) {
+      if (!import.meta.hot.data.loadedImages) {
+        import.meta.hot.data.loadedImages = {};
+      }
+      if (!import.meta.hot.data.loadedImages[filename]) {
+        import.meta.hot.data.loadedImages[filename] = p.loadImage(
+          image.default,
+        );
+      }
+      loadedImages[filename] = import.meta.hot.data.loadedImages[filename];
+    } else {
+      loadedImages[filename] = p.loadImage(image.default);
+    }
   }
 });
 
@@ -78,12 +90,15 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
 
   mainGraphics.clear();
   const currentTick = state.currentTick;
-  const activeBackground = backgroundTrack.texts.find(
+  const activeBackgroundNote = backgroundTrack.track.notes.find(
     (note) =>
-      note.note.ticks <= currentTick &&
-      note.note.ticks + note.note.durationTicks > currentTick &&
-      note.note.midi === imageSwitchMid,
+      note.ticks <= currentTick &&
+      note.ticks + note.durationTicks > currentTick &&
+      note.midi >= imageSwitchMid,
   );
+  if (!activeBackgroundNote) {
+    return;
+  }
 
   const sortNote = backgroundTrack.track.notes.find(
     (note) =>
@@ -92,10 +107,35 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       (note.midi === pixelsortInMid || note.midi === pixelsortOutMid),
   );
 
-  if (activeBackground && loadedImages[activeBackground.text]) {
+  let backgroundTextEvent = backgroundTrack.texts.findLast(
+    (text) => text.time <= activeBackgroundNote.ticks,
+  );
+  if (!backgroundTextEvent) {
+    throw new Error(
+      `No background text event found for ticks ${activeBackgroundNote.ticks}`,
+    );
+  }
+  let backgroundName = backgroundTextEvent.text;
+  if (backgroundTextEvent.note.ticks !== activeBackgroundNote.ticks) {
+    const suffix = backgroundName.match(/-([0-9]+)/);
+    if (!suffix) {
+      throw new Error(
+        `No suffix found in background name "${backgroundName}" for ticks ${activeBackgroundNote.ticks}`,
+      );
+    }
+    const suffixNumber = parseInt(suffix[1], 10);
+    const newSuffix =
+      suffixNumber + activeBackgroundNote.midi - backgroundTextEvent.note.midi;
+    backgroundName = backgroundName.replace(
+      /-[0-9]+/,
+      `-${newSuffix.toString().padStart(suffix[1].length, "0")}`,
+    );
+  }
+
+  if (activeBackgroundNote && loadedImages[backgroundName]) {
     cpuGraphics.clear();
     cpuGraphics.image(
-      loadedImages[activeBackground.text],
+      loadedImages[backgroundName],
       0,
       0,
       cpuGraphics.width,

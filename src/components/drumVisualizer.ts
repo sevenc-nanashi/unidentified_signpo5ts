@@ -164,7 +164,9 @@ export const drumVisualizer = (
         timelineNote.midi >= characterMidi &&
         timelineNote.midi < characterMidi + colors.length,
     )?.midi;
-    const primaryColor = colors[color ? color - characterMidi : 0];
+    const primaryColor = color
+      ? colors[color - characterMidi]
+      : ([192, 192, 192] as const);
     using _context = useRendererContext(tempGraphics);
     tempGraphics.clear();
     tempGraphics.noStroke();

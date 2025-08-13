@@ -62,7 +62,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       note.ticks <= state.currentTick &&
       state.currentTick < note.ticks + note.durationTicks;
 
-    graphics.fill(255, isActive ? 255 : 128);
+    graphics.fill(255, isActive ? 255 : 64);
     graphics.rect(leftX, y, rightX - leftX, noteHeight);
   }
 

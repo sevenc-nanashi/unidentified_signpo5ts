@@ -87,20 +87,13 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     graphics.rectMode(p.CENTER);
     graphics.noSmooth();
     graphics.stroke(255);
-
-    for (const [track, notes] of drumDefinition) {
-      drawKickEffects(p, graphics, state, track, notes, activateNote);
-      drawSnareEffects(p, graphics, state, track, notes, activateNote);
-      drawCymbalEffects(p, graphics, state, track, notes, activateNote);
-      drawClapEffects(p, graphics, state, track, notes, activateNote);
-      drawStar(p, graphics, state, track, notes, activateNote);
-    }
-
     using _context2 = useRendererContext(bgGraphics);
     bgGraphics.translate(p.width / 2, p.height / 2);
     bgGraphics.rectMode(p.CENTER);
     bgGraphics.noSmooth();
 
+    graphics.drawingContext.shadowColor = "#444f";
+    graphics.drawingContext.shadowBlur = dotUnit * 2;
     drawSquare(state, p, graphics, bgGraphics, activateNote);
   }
 
@@ -112,6 +105,9 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     drawDrumVisualizer(p, state, drumGraphics, drumTempGraphics, activateNote);
     const shift =
       easeInQuint(p.map(state.currentMeasure % 1, 0.5, 1, 0, 1, true)) * 0.8;
+    using _context2 = useRendererContext(graphics);
+    graphics.drawingContext.shadowColor = "#444f";
+    graphics.drawingContext.shadowBlur = dotUnit * 2;
     graphics.image(
       drumGraphics,
       drumBaseX - dotUnit + shift * drumGraphics.width,
@@ -123,6 +119,25 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       drumGraphics.width * (1 - shift),
       drumGraphics.height,
     );
+  }
+  {
+    using _context = useRendererContext(graphics);
+    graphics.translate(p.width / 2, p.height / 2);
+    graphics.rectMode(p.CENTER);
+    graphics.noSmooth();
+    graphics.stroke(255);
+    for (const [track, notes] of drumDefinition) {
+      {
+        using _context = useRendererContext(graphics);
+        graphics.drawingContext.shadowColor = "#4448";
+        graphics.drawingContext.shadowBlur = dotUnit * 2;
+        drawKickEffects(p, graphics, state, track, notes, activateNote);
+        drawSnareEffects(p, graphics, state, track, notes, activateNote);
+        drawClapEffects(p, graphics, state, track, notes, activateNote);
+        drawStar(p, graphics, state, track, notes, activateNote);
+      }
+      drawCymbalEffects(p, graphics, state, track, notes, activateNote);
+    }
   }
 
   {

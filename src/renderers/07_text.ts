@@ -44,18 +44,18 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     p.noSmooth();
     p.fill(...fg);
 
-    p.textAlign(p.RIGHT, p.CENTER);
     const textSizeFactor = 0.3;
     p.textLeading(fontSize * (1 + textSizeFactor));
     if (section.length === 1) {
       p.textAlign(p.CENTER, p.CENTER);
-      p.text(section[0], p.width / 2 - shift, p.height * 0.5);
+      p.text(section[0], p.width / 2, p.height * 0.5);
     } else {
       const leftSection = section[0];
 
       p.drawingContext.shadowBlur = dotUnit;
 
       p.drawingContext.shadowColor = toRgb(dim(tycColor, 0.7));
+      p.textAlign(p.RIGHT, p.CENTER);
       p.text(leftSection, p.width / 2 - shift, p.height * 0.5);
 
       p.textAlign(p.LEFT, p.CENTER);

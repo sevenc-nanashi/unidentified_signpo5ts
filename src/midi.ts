@@ -1,4 +1,4 @@
-import { Midi } from "@tonejs/midi";
+import { Midi, Track } from "@tonejs/midi";
 import data from "./assets/main.mid?uint8array";
 import { MidiData } from "midi-file";
 import { Note } from "@tonejs/midi/dist/Note";
@@ -13,7 +13,39 @@ export const loadTimelineWithText = (
   options?: Partial<{
     midis: number[];
   }>,
-) => {
+): {
+  texts: { text: string; time: number; note: Note }[];
+  track: Track;
+} => {
+  const timeline = loadTimelineWithOptionalText(
+    trackName,
+    timelineMid,
+    timelineRawMid,
+    options,
+  );
+  for (const note of timeline.texts) {
+    if (!note.note) {
+      throw new Error(
+        `No note found for text "${note.text}" at time ${note.time}`,
+      );
+    }
+  }
+  return {
+    texts: timeline.texts as { text: string; time: number; note: Note }[],
+    track: timeline.track,
+  };
+};
+export const loadTimelineWithOptionalText = (
+  trackName: string,
+  timelineMid: Midi,
+  timelineRawMid: MidiData,
+  options?: Partial<{
+    midis: number[];
+  }>,
+): {
+  texts: { text: string; time: number; note: Note | undefined }[];
+  track: Track;
+} => {
   const midis = options?.midis;
   const tonejsMidiTrack = timelineMid.tracks.find(
     (track) => track.name === trackName,
@@ -36,13 +68,13 @@ export const loadTimelineWithText = (
         (note) =>
           note.ticks + 1 >= acc.time && (!midis || midis.includes(note.midi)),
       );
-      if (!midiNote) {
-        throw new Error(`No note found at ${acc.time}, ${text}`);
-      }
       acc.texts.push({ text, time: acc.time, note: midiNote });
       return acc;
     },
-    { texts: [] as { text: string; time: number; note: Note }[], time: 0 },
+    {
+      texts: [] as { text: string; time: number; note: Note | undefined }[],
+      time: 0,
+    },
   );
 
   return { texts: textEvents.texts, track: tonejsMidiTrack };
