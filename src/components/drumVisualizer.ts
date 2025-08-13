@@ -347,24 +347,21 @@ export function drawDrumUnit(
     alpha * progress,
   ] as [number, number, number, number];
   tempGraphics.fill(...mainColor);
-  if (cellType === "star") {
-    const height = cellHeight - dotUnit * 7;
-    tempGraphics.rect(
-      dotUnit * 5,
-      dotUnit * 2 + height * (1 - progress),
-      cellWidth - dotUnit * 10,
-      height * progress,
-    );
-    tempGraphics.rect(
-      dotUnit * 5,
-      cellHeight - dotUnit * 4,
-      cellWidth - dotUnit * 10,
-      dotUnit * 2,
-    );
-    return;
-  }
   switch (cellType) {
     case "star+kick": {
+      const starHeight = cellHeight - dotUnit * 7;
+      tempGraphics.rect(
+        dotUnit * 5,
+        dotUnit * 2 + starHeight * (1 - progress),
+        cellWidth - dotUnit * 10,
+        starHeight * progress,
+      );
+      tempGraphics.rect(
+        dotUnit * 5,
+        cellHeight - dotUnit * 4,
+        cellWidth - dotUnit * 10,
+        dotUnit * 2,
+      );
       const height = cellHeight - dotUnit * 4;
       tempGraphics.rect(
         dotUnit * 2,

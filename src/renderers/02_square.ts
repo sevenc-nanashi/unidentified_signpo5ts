@@ -1,6 +1,6 @@
 import p5 from "p5";
 import { State } from "../state.ts";
-import { colors, dotUnit, height, width } from "../const.ts";
+import { bg, colors, dotUnit, height, width } from "../const.ts";
 import { useRendererContext } from "../utils.ts";
 import { DrumDefinition, drumDefinition } from "../drum.ts";
 import { midi } from "../midi.ts";
@@ -17,23 +17,49 @@ const visualizerTimeline = timeline.tracks.find(
 const activateMidi = 61;
 
 const size = height * 0.35;
-const expand = size * 0.1;
-const snareExpand = height * 0.1;
-const effect = height * 0.15;
+
+const kickExpand = size * 0.1;
 const expandDuration = 0.25;
+
+const snareExpand = height * 0.1;
 const snareExpandDuration = 0.5;
+
+const effect = height * 0.15;
 const effectDuration = 1;
+
+const cymbalDuration = 1;
+const cymbalSize = height * 0.15;
+
+const clapDuration = 0.5;
+const clapSize = height * 0.1;
+const clapPadding = dotUnit * 2;
+
+const starDuration = 2;
+const starSize = size * 0.9;
+const starWeight = dotUnit * 2;
+const starDivs = 10;
+const starSwitch = 1 / 32;
 
 const drumBaseX = width / 2 - size / 2;
 const drumEndX = width - drumBaseX;
 const drumWidth = drumEndX - drumBaseX;
 const drumBaseY =
-  height / 2 - size / 2 - expand / 2 - dotUnit * 8 - drumVisualizer.cellHeight;
+  height / 2 -
+  size / 2 -
+  kickExpand / 2 -
+  dotUnit * 8 -
+  drumVisualizer.cellHeight;
 
 const xPerDrum = (drumWidth - drumVisualizer.cellWidth) / (8 - 1);
 
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   const graphics = import.meta.autoGraphics(p, "square", p.width, p.height);
+  const bgGraphics = import.meta.autoGraphics(
+    p,
+    "background",
+    p.width,
+    p.height,
+  );
   const drumGraphics = import.meta.autoGraphics(
     p,
     "drum",
@@ -65,9 +91,17 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     for (const [track, notes] of drumDefinition) {
       drawKickEffects(p, graphics, state, track, notes, activateNote);
       drawSnareEffects(p, graphics, state, track, notes, activateNote);
+      drawCymbalEffects(p, graphics, state, track, notes, activateNote);
+      drawClapEffects(p, graphics, state, track, notes, activateNote);
+      drawStar(p, graphics, state, track, notes, activateNote);
     }
 
-    drawSquare(state, p, graphics, activateNote);
+    using _context2 = useRendererContext(bgGraphics);
+    bgGraphics.translate(p.width / 2, p.height / 2);
+    bgGraphics.rectMode(p.CENTER);
+    bgGraphics.noSmooth();
+
+    drawSquare(state, p, graphics, bgGraphics, activateNote);
   }
 
   {
@@ -91,7 +125,14 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     );
   }
 
-  p.image(graphics, 0, 0, p.width, p.height);
+  {
+    using _context = useRendererContext(p);
+    p.tint(255, 255, 255, 128);
+    p.image(bgGraphics, 0, 0, p.width, p.height);
+  }
+  {
+    p.image(graphics, 0, 0, p.width, p.height);
+  }
 });
 function drawKickEffects(
   p: p5,
@@ -118,8 +159,8 @@ function drawKickEffects(
       1,
     );
     const effectSize = p.lerp(
-      size + expand,
-      size + expand + effect,
+      size + kickExpand,
+      size + kickExpand + effect,
       easeOutQuint(progress),
     );
     graphics.strokeWeight(p.lerp(dotUnit, 0, progress));
@@ -133,14 +174,11 @@ function drawSquare(
   state: State,
   p: p5,
   graphics: p5.Graphics,
+  bgGraphics: p5.Graphics,
   activateNote: Note,
 ) {
-  let currentSize = size;
+  let kickExpandSize = 0;
   for (const [track, notes] of drumDefinition) {
-    if (!notes.kick) {
-      continue;
-    }
-
     const lastKick = track.notes.findLast(
       (note) =>
         note.ticks > activateNote.ticks &&
@@ -156,7 +194,7 @@ function drawSquare(
         0,
         1,
       );
-      currentSize = p.lerp(size + expand, size, easeOutQuint(progress));
+      kickExpandSize = p.lerp(kickExpand, 0, easeOutQuint(progress));
     }
   }
 
@@ -164,8 +202,15 @@ function drawSquare(
   graphics.strokeWeight(dotUnit * 2);
   graphics.noFill();
 
+  const currentSize = size + kickExpandSize;
   graphics.rect(0, 0, currentSize, currentSize);
-  return currentSize;
+
+  bgGraphics.clear();
+  bgGraphics.noSmooth();
+  bgGraphics.background(0, 0, 0);
+  // @ts-expect-error p5.ts is broken
+  bgGraphics.blendMode(p.REMOVE);
+  bgGraphics.rect(0, 0, currentSize, currentSize);
 }
 
 function drawSnareEffects(
@@ -274,4 +319,154 @@ function drawDrumVisualizer(
       drawRect.height,
     );
   }
+}
+function drawCymbalEffects(
+  p: p5,
+  graphics: p5.Graphics,
+  state: State,
+  track: Track,
+  notes: Partial<DrumDefinition>,
+  activateNote: Note,
+) {
+  const lastCymbal = track.notes.findLast(
+    (note) =>
+      note.ticks > activateNote.ticks &&
+      note.ticks <= state.currentTick &&
+      midi.header.ticksToMeasures(note.ticks) + cymbalDuration >
+        state.currentMeasure &&
+      note.midi === notes.cymbal,
+  );
+  if (!lastCymbal) return;
+  const progress = p.map(
+    state.currentMeasure,
+    midi.header.ticksToMeasures(lastCymbal.ticks),
+    midi.header.ticksToMeasures(lastCymbal.ticks) + cymbalDuration,
+    0,
+    1,
+  );
+  graphics.fill(255, 255, 255, 255 * (1 - progress));
+  graphics.noStroke();
+  graphics.rect(0, 0, cymbalSize, cymbalSize);
+}
+function drawClapEffects(
+  p: p5,
+  graphics: p5.Graphics,
+  state: State,
+  track: Track,
+  notes: Partial<DrumDefinition>,
+  activateNote: Note,
+) {
+  const activeClaps = track.notes.filter(
+    (note) =>
+      note.ticks > activateNote.ticks &&
+      note.ticks <= state.currentTick &&
+      midi.header.ticksToMeasures(note.ticks) + clapDuration >
+        state.currentMeasure &&
+      note.midi === notes.clap,
+  );
+  for (const activeClap of activeClaps) {
+    const progress = p.map(
+      state.currentMeasure,
+      midi.header.ticksToMeasures(activeClap.ticks),
+      midi.header.ticksToMeasures(activeClap.ticks) + clapDuration,
+      0,
+      1,
+    );
+    graphics.stroke(255, 255, 255, 255 * (1 - easeOutQuint(progress)));
+    graphics.noFill();
+    graphics.strokeWeight(p.lerp(dotUnit * 2, 0, progress));
+    graphics.strokeCap(p.SQUARE);
+    const shift = p.lerp(0, clapSize, easeOutQuint(progress));
+    const expandSize = size + kickExpand;
+    const verticalSize = size + dotUnit * 4;
+    graphics.line(
+      -expandSize / 2 - clapPadding - shift,
+      -verticalSize / 2,
+      -expandSize / 2 - clapPadding - shift,
+      verticalSize / 2,
+    );
+    graphics.line(
+      expandSize / 2 + clapPadding + shift,
+      -verticalSize / 2,
+      expandSize / 2 + clapPadding + shift,
+      verticalSize / 2,
+    );
+  }
+}
+
+function drawStar(
+  p: p5,
+  graphics: p5.Graphics,
+  state: State,
+  track: Track,
+  notes: Partial<DrumDefinition>,
+  activateNote: Note,
+) {
+  const tempGraphics = import.meta.autoGraphics(p, "starTemp", size, size);
+  const lastStar = track.notes.findLast(
+    (note) =>
+      midi.header.ticksToMeasures(note.ticks) + starDuration >
+        state.currentMeasure &&
+      note.ticks < state.currentTick &&
+      note.midi === notes.star,
+  );
+  if (!lastStar) return;
+  const progress = p.map(
+    state.currentMeasure,
+    midi.header.ticksToMeasures(lastStar.ticks),
+    midi.header.ticksToMeasures(lastStar.ticks) + starDuration,
+    0,
+    1,
+  );
+  using _context = useRendererContext(tempGraphics);
+
+  tempGraphics.clear();
+  tempGraphics.noStroke();
+  tempGraphics.fill(255, 255, 255, 255);
+  tempGraphics.translate(tempGraphics.width / 2, tempGraphics.height / 2);
+  tempGraphics.rect(-starSize / 2, -starSize / 2, starSize, starWeight);
+  tempGraphics.rect(-starSize / 2, -starSize / 2, starWeight, starSize);
+  tempGraphics.rect(
+    starSize / 2 - starWeight,
+    -starSize / 2,
+    starWeight,
+    starSize,
+  );
+  tempGraphics.rect(
+    -starSize / 2,
+    starSize / 2 - starWeight,
+    starSize,
+    starWeight,
+  );
+
+  {
+    using _context = useRendererContext(tempGraphics);
+    // tempGraphics.erase(255, 0);
+    const cellSize = starSize / (starDivs + 1);
+    const invert =
+      Math.floor(
+        (state.currentMeasure - midi.header.ticksToMeasures(lastStar.ticks)) /
+          starSwitch,
+      ) % 2;
+    for (let x = 0; x <= starDivs; x++) {
+      for (let y = 0; y <= starDivs; y++) {
+        const xPos = -starSize / 2 + cellSize * x;
+        const yPos = -starSize / 2 + cellSize * y;
+        if ((x + y) % 2 === invert) {
+          // @ts-expect-error p5.ts is broken
+          tempGraphics.blendMode(p.REMOVE);
+          tempGraphics.rect(xPos, yPos, cellSize, cellSize);
+        }
+      }
+    }
+  }
+
+  graphics.tint(255, 255, 255, 255 * (1 - progress));
+  graphics.image(
+    tempGraphics,
+    -tempGraphics.width / 2,
+    -tempGraphics.height / 2,
+    tempGraphics.width,
+    tempGraphics.height,
+  );
 }

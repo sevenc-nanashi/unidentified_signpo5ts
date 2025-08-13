@@ -23,5 +23,5 @@ interface ImportMeta {
 		p: p5,
 		name: string,
 		...args: Parameters<p5["createGraphics"]>
-	) => p5.Graphics;
+	) => import("p5").Graphics;
 }

@@ -27,7 +27,7 @@
 		"@biomejs/biome": "^2.1.4",
 		"@tonejs/midi": "^2.0.28",
 		"midi-file": "^1.2.4",
-		"p5": "1.11.3",
+		"p5": "1",
 		"p5-frame-capturer": "^0.4.2",
 		"pixelsort": "link:pixelsort/pkg",
 		"ts-pattern": "^5.8.0",

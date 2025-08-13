@@ -78,7 +78,11 @@ function drawTexts(state: State) {
     mainGraphics.textAlign(mainGraphics.LEFT, mainGraphics.BOTTOM);
     mainGraphics.text(
       [
-        `${Math.floor(state.currentMeasure)}.${(Math.floor(state.currentMeasure * 4) % 4) + 1}.${Math.floor(
+        `${Math.floor(state.currentMeasure)
+          .toString()
+          .padStart(
+            2,
+          )}.${(Math.floor(state.currentMeasure * 4) % 4) + 1}.${Math.floor(
           (state.currentMeasure * 400) % 100,
         )
           .toString()

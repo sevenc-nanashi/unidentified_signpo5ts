@@ -58,7 +58,7 @@ export const drumDefinition = [
   [
     star,
     {
-      star: 52,
+      star: 53,
     },
   ],
 ] as [midi: Track, definition: Partial<DrumDefinition>][];
