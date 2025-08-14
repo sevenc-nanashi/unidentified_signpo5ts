@@ -66,12 +66,6 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     drumWidth + dotUnit * 2,
     dotUnit * 2 + drumVisualizer.cellHeight,
   );
-  const drumTempGraphics = import.meta.autoGraphics(
-    p,
-    "drumTemp",
-    drumVisualizer.cellWidth + dotUnit * 2,
-    drumVisualizer.cellHeight + dotUnit * 2,
-  );
   const activateNote = visualizerTimeline.notes.find(
     (note) =>
       note.ticks <= state.currentTick &&
@@ -98,29 +92,6 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   }
 
   {
-    using _context = useRendererContext(drumGraphics);
-    drumGraphics.clear();
-    drumGraphics.noSmooth();
-    drumGraphics.translate(dotUnit, dotUnit);
-    drawDrumVisualizer(p, state, drumGraphics, drumTempGraphics, activateNote);
-    const shift =
-      easeInQuint(p.map(state.currentMeasure % 1, 0.5, 1, 0, 1, true)) * 0.8;
-    using _context2 = useRendererContext(graphics);
-    graphics.drawingContext.shadowColor = "#444f";
-    graphics.drawingContext.shadowBlur = dotUnit * 2;
-    graphics.image(
-      drumGraphics,
-      drumBaseX - dotUnit + shift * drumGraphics.width,
-      drumBaseY - dotUnit,
-      drumGraphics.width * (1 - shift),
-      drumGraphics.height,
-      shift * drumGraphics.width,
-      0,
-      drumGraphics.width * (1 - shift),
-      drumGraphics.height,
-    );
-  }
-  {
     using _context = useRendererContext(graphics);
     graphics.translate(p.width / 2, p.height / 2);
     graphics.rectMode(p.CENTER);
@@ -136,6 +107,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
         drawClapEffects(p, graphics, state, track, notes, activateNote);
         drawStar(p, graphics, state, track, notes, activateNote);
       }
+      drawMiniCymbalEffects(p, graphics, state, track, notes, activateNote);
       drawCymbalEffects(p, graphics, state, track, notes, activateNote);
     }
   }
@@ -340,6 +312,34 @@ function drawDrumVisualizer(
       drawRect.height,
     );
   }
+}
+function drawMiniCymbalEffects(
+  p: p5,
+  graphics: p5.Graphics,
+  state: State,
+  track: Track,
+  notes: Partial<DrumDefinition>,
+  activateNote: Note,
+) {
+  const lastCymbal = track.notes.findLast(
+    (note) =>
+      note.ticks > activateNote.ticks &&
+      note.ticks <= state.currentTick &&
+      midi.header.ticksToMeasures(note.ticks) + cymbalDuration >
+        state.currentMeasure &&
+      note.midi === notes.miniCymbal,
+  );
+  if (!lastCymbal) return;
+  const progress = p.map(
+    state.currentMeasure,
+    midi.header.ticksToMeasures(lastCymbal.ticks),
+    midi.header.ticksToMeasures(lastCymbal.ticks) + cymbalDuration,
+    0,
+    1,
+  );
+  graphics.fill(255, 255, 255, 127 * (1 - progress));
+  graphics.noStroke();
+  graphics.rect(0, 0, cymbalSize, cymbalSize);
 }
 function drawCymbalEffects(
   p: p5,

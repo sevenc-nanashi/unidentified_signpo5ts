@@ -47,6 +47,9 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     const textSizeFactor = 0.3;
     p.textLeading(fontSize * (1 + textSizeFactor));
     if (section.length === 1) {
+      p.drawingContext.shadowBlur = dotUnit;
+
+      p.drawingContext.shadowColor = "#444f";
       p.textAlign(p.CENTER, p.CENTER);
       p.text(section[0], p.width / 2, p.height * 0.5);
     } else {
