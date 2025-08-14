@@ -14,7 +14,16 @@ const chordTrack = timelineMid.tracks.find((track) => track.name === "chord")!;
 let chordImage: p5.Image;
 
 export const preload = import.meta.hmrify((p: p5) => {
+  if (import.meta.hot) {
+    if (import.meta.hot.data.chordImage) {
+      chordImage = import.meta.hot.data.chordImage;
+      return;
+    }
+  }
   chordImage = p.loadImage(chords);
+  if (import.meta.hot) {
+    import.meta.hot.data.chordImage = chordImage;
+  }
 });
 
 // 720/250/535

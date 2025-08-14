@@ -10,12 +10,14 @@ import timelineMid, {
 } from "../assets/timeline.mid?mid";
 import type { State } from "../state";
 import { resizeWithAspectRatio, saturate, useRendererContext } from "../utils";
+import Rand from "rand-seed";
 
 const imageSwitchMid = 60;
 const alphaInMid = 59;
 const pixelsortOutMid = 58;
 const pixelsortInMid = 57;
 const pixelsortMid = 56;
+const glitchMid = 55;
 
 const backgroundTrack = loadTimelineWithText(
   "backgrounds",
@@ -147,6 +149,34 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       loadedImages[backgroundName].height,
       p.COVER,
     );
+
+    const glitchNote = backgroundTrack.track.notes.find(
+      (note) =>
+        note.ticks <= currentTick &&
+        note.ticks + note.durationTicks > currentTick &&
+        note.midi === glitchMid,
+    );
+    if (glitchNote) {
+      const rand = new Rand(`${glitchNote.ticks}:${backgroundName}:${glitchNote.velocity}:${randomSeed}`);
+      for (let i = 0; i < Math.round(rand.next() * 15); i++) {
+        const w = (rand.next() + 0.5) * 2 * 40 * glitchNote.velocity;
+        const h = (rand.next() + 0.5) * 2 * 20 * glitchNote.velocity;
+        const x = rand.next() * (cpuGraphics.width - w);
+        const y = rand.next() * (cpuGraphics.height - h);
+        cpuGraphics.copy(
+          cpuGraphics,
+          x,
+          y,
+          w,
+          h,
+          rand.next() * (cpuGraphics.width - w),
+          rand.next() * (cpuGraphics.height - h),
+          w,
+          h,
+        );
+      }
+    }
+
     if (sortNote) {
       cpuGraphics.loadPixels();
       cpuGraphics.noSmooth();
