@@ -6,16 +6,19 @@ import timelineMid from "../assets/timeline.mid?mid";
 import { dim, useRendererContext } from "../utils";
 import { atlasMap } from "../atlas";
 import { characterLabs } from "../lab";
-import { easeOutQuint, unlerp } from "../easing";
+import { easeInQuint, easeOutQuint, unlerp } from "../easing";
 import mainImageUrl from "../assets/illusts/main.png?url";
+import Rand from "rand-seed";
 
-const bridgeTrack = timelineMid.tracks.find(
+const spritesTrack = timelineMid.tracks.find(
   (track) => track.name === "sprites",
 )!;
 let mainImage: p5.Image;
 
 const reiBaseNote = 60;
 const tycBaseNote = 72;
+
+const jumpHeight = 8;
 
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   if (!mainImage) {
@@ -48,7 +51,7 @@ const drawCharacter = (
   name: keyof typeof characterLabs,
   baseMidi: number,
 ) => {
-  const note = bridgeTrack.notes.find(
+  const note = spritesTrack.notes.find(
     (note) =>
       note.midi >= baseMidi &&
       note.midi < baseMidi + 4 &&
@@ -63,13 +66,13 @@ const drawCharacter = (
   const footPixel = atlas.yellowPixels[2];
   const footY = footPixel[1] - atlas.start[1];
 
-  const isClosed = bridgeTrack.notes.find(
+  const isClosed = spritesTrack.notes.find(
     (note) =>
       note.midi === baseMidi + 4 &&
       note.ticks <= state.currentTick &&
       state.currentTick < note.ticks + note.durationTicks,
   );
-  const isOpen2 = bridgeTrack.notes.find(
+  const isOpen2 = spritesTrack.notes.find(
     (note) =>
       note.midi === baseMidi + 5 &&
       note.ticks <= state.currentTick &&
@@ -96,6 +99,62 @@ const drawCharacter = (
     mouthPixel[0] - atlas.start[0],
     mouthPixel[1] - atlas.start[1],
   ];
+
+  let jumpShift = 0;
+  const jumpNote = spritesTrack.notes.find(
+    (note) =>
+      note.midi === baseMidi + 6 &&
+      note.ticks <= state.currentTick &&
+      state.currentTick < note.ticks + note.durationTicks,
+  );
+  let jumpShiftProgress = 0;
+  let jumpSeed = "";
+  if (jumpNote) {
+    jumpShiftProgress =
+      (1 -
+        (state.currentTick - (jumpNote.ticks + jumpNote.durationTicks / 2)) **
+          2 /
+          (jumpNote.durationTicks / 2) ** 2) *
+      jumpNote.velocity;
+    const jumpProgress = unlerp(
+      jumpNote.ticks,
+      jumpNote.ticks + jumpNote.durationTicks,
+      state.currentTick,
+    );
+    jumpSeed = jumpNote.ticks.toString();
+
+    jumpShift = Math.ceil(jumpShiftProgress * jumpHeight);
+
+    if (jumpShift > 1) {
+      graphics.fill(255, 255, 255, 255 * (1 - jumpProgress) ** 3);
+      graphics.noStroke();
+      const footWidth = atlas.yellowPixels[1][0] - atlas.yellowPixels[0][0];
+      const baseX = atlas.yellowPixels[1][0] - atlas.start[0] - atlas.width / 2;
+      const rand = new Rand(`${jumpSeed}:${name}:${jumpShift}`);
+      graphics.rect(
+        baseX - footWidth - 2,
+        -atlas.height + footY + 2 - jumpShift + Math.round(rand.next()),
+        1,
+        Math.ceil(6 * jumpShiftProgress * (rand.next() / 2 + 0.5)),
+      );
+      graphics.rect(
+        baseX + footWidth + 2,
+        -atlas.height + footY + 2 - jumpShift+ Math.round(rand.next()),
+        1,
+        Math.ceil(6 * jumpShiftProgress * (rand.next() / 2 + 0.5)),
+      );
+      for (let x = baseX - footWidth + 1; x <= baseX + footWidth - 1; x += 2) {
+        graphics.rect(
+          x,
+          -jumpShift + 2 + Math.round(rand.next()),
+          1,
+          Math.ceil(2 * jumpShiftProgress),
+        );
+      }
+    }
+  }
+
+  graphics.translate(0, -jumpShift);
 
   graphics.image(
     mainImage,
@@ -142,7 +201,7 @@ const drawCharacter = (
 
 const getAlpha = (state: State, spawnMidi: number, persistMidi: number) => {
   let alpha = 0;
-  const spawnNote = bridgeTrack.notes.find(
+  const spawnNote = spritesTrack.notes.find(
     (note) =>
       note.midi === spawnMidi &&
       note.ticks <= state.currentTick &&
@@ -157,7 +216,7 @@ const getAlpha = (state: State, spawnMidi: number, persistMidi: number) => {
       ),
     );
   }
-  const persistNote = bridgeTrack.notes.find(
+  const persistNote = spritesTrack.notes.find(
     (note) =>
       note.midi === persistMidi &&
       note.ticks <= state.currentTick &&

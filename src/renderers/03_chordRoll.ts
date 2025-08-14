@@ -1,7 +1,7 @@
 import p5 from "p5";
 import { State } from "../state.ts";
 import { dotUnit, height, reiColor, tycColor, width } from "../const.ts";
-import { useRendererContext } from "../utils.ts";
+import { saturate, useRendererContext } from "../utils.ts";
 import { midi, ust, ustToMidiMultiplier } from "../midi.ts";
 import timeline from "../assets/timeline.mid?mid";
 import { Note } from "@tonejs/midi/dist/Note";
@@ -74,9 +74,9 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     );
 
     if (hasTycChorus) {
-      graphics.fill(...tycColor, isActive ? 255 : 64);
+      graphics.fill(...saturate(tycColor, 0.25), isActive ? 255 : 64);
     } else if (hasReiChorus) {
-      graphics.fill(...reiColor, isActive ? 255 : 64);
+      graphics.fill(...saturate(reiColor, 0.25), isActive ? 255 : 64);
     } else {
       graphics.fill(255, isActive ? 255 : 64);
     }

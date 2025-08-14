@@ -29,6 +29,9 @@ importers:
       pixelsort:
         specifier: link:pixelsort/pkg
         version: link:pixelsort/pkg
+      rand-seed:
+        specifier: ^3.0.0
+        version: 3.0.0
       ts-pattern:
         specifier: ^5.8.0
         version: 5.8.0
@@ -856,6 +859,9 @@ packages:
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
 
+  rand-seed@3.0.0:
+    resolution: {integrity: sha512-Zy8wnL6whyIAGOX2i9Mn1Orq3t9TNizGUk8euxamr60Z3PmspwFeT+vCZPcYMAR5nOztnAKPtVi3jt8EzmCB6g==}
+
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
 
@@ -1561,6 +1567,8 @@ snapshots:
       source-map-js: 1.2.1
 
   process-nextick-args@2.0.1: {}
+
+  rand-seed@3.0.0: {}
 
   readable-stream@2.3.8:
     dependencies:
