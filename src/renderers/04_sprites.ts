@@ -126,7 +126,12 @@ const drawCharacter = (
     jumpShift = Math.ceil(jumpShiftProgress * jumpHeight);
 
     if (jumpShift > 1) {
-      graphics.fill(255, 255, 255, 255 * (1 - jumpProgress) ** 3);
+      graphics.fill(
+        255,
+        255,
+        255,
+        255 * (1 - jumpProgress) ** 3 * easeOutQuint(jumpNote.velocity),
+      );
       graphics.noStroke();
       const footWidth = atlas.yellowPixels[1][0] - atlas.yellowPixels[0][0];
       const baseX = atlas.yellowPixels[1][0] - atlas.start[0] - atlas.width / 2;
@@ -139,7 +144,7 @@ const drawCharacter = (
       );
       graphics.rect(
         baseX + footWidth + 2,
-        -atlas.height + footY + 2 - jumpShift+ Math.round(rand.next()),
+        -atlas.height + footY + 2 - jumpShift + Math.round(rand.next()),
         1,
         Math.ceil(6 * jumpShiftProgress * (rand.next() / 2 + 0.5)),
       );

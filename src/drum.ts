@@ -10,6 +10,8 @@ export const percDrum =
   midi.tracks[midi.tracks.findIndex((track) => track.name === "RVK-808") + 1]!;
 export const star =
   midi.tracks[midi.tracks.findIndex((track) => track.name === "fx") + 1];
+export const revStar =
+  midi.tracks[midi.tracks.findIndex((track) => track.name === "fx") + 2];
 
 export type DrumDefinition = {
   kick: number;
@@ -18,6 +20,7 @@ export type DrumDefinition = {
   openHihat: number;
   clap: number;
   star: number;
+  revStar: number;
   dial: number;
   lowTom: number;
   highTom: number;
@@ -59,6 +62,18 @@ export const drumDefinition = [
     star,
     {
       star: 53,
+    },
+  ],
+  [
+    star,
+    {
+      star: 54,
+    },
+  ],
+  [
+    revStar,
+    {
+      revStar: 65,
     },
   ],
 ] as [midi: Track, definition: Partial<DrumDefinition>][];

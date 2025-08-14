@@ -337,7 +337,7 @@ function drawMiniCymbalEffects(
     0,
     1,
   );
-  graphics.fill(255, 255, 255, 127 * (1 - progress));
+  graphics.fill(255, 255, 255, 192 * (1 - progress));
   graphics.noStroke();
   graphics.rect(0, 0, cymbalSize, cymbalSize);
 }
@@ -431,14 +431,35 @@ function drawStar(
       note.ticks < state.currentTick &&
       note.midi === notes.star,
   );
-  if (!lastStar) return;
-  const progress = p.map(
-    state.currentMeasure,
-    midi.header.ticksToMeasures(lastStar.ticks),
-    midi.header.ticksToMeasures(lastStar.ticks) + starDuration,
-    0,
-    1,
+  const lastRevStar = track.notes.findLast(
+    (note) =>
+      note.ticks < state.currentTick &&
+      note.ticks + note.durationTicks > state.currentTick &&
+      note.midi === notes.revStar,
   );
+  if (!lastStar && !lastRevStar) return;
+  let progress: number = 1;
+
+  if (lastRevStar) {
+    progress = p.map(
+      state.currentTick,
+      lastRevStar.ticks,
+      lastRevStar.ticks + lastRevStar.durationTicks,
+      1,
+      0.3,
+      true,
+    );
+  }
+  if (lastStar) {
+    progress = p.map(
+      state.currentMeasure,
+      midi.header.ticksToMeasures(lastStar.ticks),
+      midi.header.ticksToMeasures(lastStar.ticks) + starDuration,
+      0,
+      1,
+      true,
+    );
+  }
   using _context = useRendererContext(tempGraphics);
 
   tempGraphics.clear();
@@ -466,7 +487,10 @@ function drawStar(
     const cellSize = starSize / (starDivs + 1);
     const invert =
       Math.floor(
-        (state.currentMeasure - midi.header.ticksToMeasures(lastStar.ticks)) /
+        (state.currentMeasure -
+          midi.header.ticksToMeasures(
+            lastStar?.ticks ?? lastRevStar?.ticks ?? 0,
+          )) /
           starSwitch,
       ) % 2;
     for (let x = 0; x <= starDivs; x++) {

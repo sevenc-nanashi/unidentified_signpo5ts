@@ -28,13 +28,14 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     );
   }
 
-  const blueFlashNote = flashTimeline.notes.find(
+  const blueFlashNotes = flashTimeline.notes.filter(
     (note) =>
       note.ticks <= state.currentTick &&
       state.currentTick < note.ticks + note.durationTicks &&
-      note.midi === blueFlashMidi,
+      note.midi >= blueFlashMidi &&
+      note.midi < blueFlashMidi + 12,
   );
-  if (blueFlashNote) {
+  for (const blueFlashNote of blueFlashNotes) {
     p.background(
       230,
       240,

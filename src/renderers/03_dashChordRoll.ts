@@ -22,7 +22,8 @@ const areaWidth = width * 0.175;
 const areaMeasure = 2;
 
 const currentTickQuantizer = midi.header.ppq / 8;
-const activeDuration = midi.header.ppq;
+const activeDuration = midi.header.ppq / 4;
+const fadeDuration = midi.header.ppq;
 const alphaQuantization = 1 / 8;
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   const graphics = import.meta.autoGraphics(
@@ -72,8 +73,8 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
         easeOutQuint(
           p.map(
             state.currentTick,
-            note.ticks + note.durationTicks,
             note.ticks + note.durationTicks + activeDuration,
+            note.ticks + note.durationTicks + activeDuration + fadeDuration,
             0,
             1,
             true,

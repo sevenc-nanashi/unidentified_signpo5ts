@@ -19,3 +19,7 @@ export const clip = (t: number) => {
 export const unlerp = (a: number, b: number, x: number) => {
   return (x - a) / (b - a);
 };
+
+export const lerp = (a: number, b: number, t: number) => {
+  return a + (b - a) * t;
+};

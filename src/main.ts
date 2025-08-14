@@ -49,6 +49,7 @@ function keydown(p: p5, state: State) {
       console.log("current time", audioElement.currentTime);
       audioElement.currentTime += 5;
       console.log("forward to", audioElement.currentTime);
+      state.currentFrame = audioElement.currentTime * frameRate;
     }
     if (e.key === "ArrowLeft") {
       // state.currentFrame -= frameRate * 5;
@@ -63,6 +64,7 @@ function keydown(p: p5, state: State) {
         audioElement.currentTime = 0;
       }
       console.log("rewind to", audioElement.currentTime);
+      state.currentFrame = audioElement.currentTime * frameRate;
     }
     if (e.key === "ArrowUp") {
       audioElement.volume += 0.1;

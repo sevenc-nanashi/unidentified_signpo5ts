@@ -1,7 +1,7 @@
 import type p5 from "p5";
 import { sort } from "pixelsort";
 import { dotUnit, reiColor, tycColor } from "../const";
-import { easeInQuint, easeOutQuint } from "../easing";
+import { easeInQuint, easeOutQuint, lerp } from "../easing";
 import { loadTimelineWithText } from "../midi";
 import commonVert from "../shaders/common.vert?raw";
 import backgroundFrag from "../shaders/background.frag?raw";
@@ -9,12 +9,13 @@ import timelineMid, {
   rawMidi as timelineRawMid,
 } from "../assets/timeline.mid?mid";
 import type { State } from "../state";
-import { saturate, useRendererContext } from "../utils";
+import { resizeWithAspectRatio, saturate, useRendererContext } from "../utils";
 
 const imageSwitchMid = 60;
 const alphaInMid = 59;
 const pixelsortOutMid = 58;
 const pixelsortInMid = 57;
+const pixelsortMid = 56;
 
 const backgroundTrack = loadTimelineWithText(
   "backgrounds",
@@ -104,7 +105,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     (note) =>
       note.ticks <= currentTick &&
       note.ticks + note.durationTicks > currentTick &&
-      (note.midi === pixelsortInMid || note.midi === pixelsortOutMid),
+      [pixelsortInMid, pixelsortOutMid, pixelsortMid].includes(note.midi),
   );
 
   let backgroundTextEvent = backgroundTrack.texts.findLast(
@@ -144,6 +145,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       0,
       loadedImages[backgroundName].width,
       loadedImages[backgroundName].height,
+      p.COVER,
     );
     if (sortNote) {
       cpuGraphics.loadPixels();
@@ -157,9 +159,15 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
         cpuGraphics.width,
         cpuGraphics.height,
         512 *
-          (sortNote.midi === pixelsortInMid
-            ? easeInQuint(sortNoteProgress)
-            : easeInQuint(1 - sortNoteProgress)),
+          (sortNote.midi === pixelsortMid
+            ? sortNote.velocity
+            : lerp(
+                1 - sortNote.velocity,
+                1,
+                sortNote.midi === pixelsortInMid
+                  ? easeInQuint(sortNoteProgress)
+                  : easeInQuint(1 - sortNoteProgress),
+              )),
       );
       for (let i = 0; i < sorted.length; i++) {
         cpuGraphics.pixels[i] = sorted[i];
