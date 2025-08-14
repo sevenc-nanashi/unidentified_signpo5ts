@@ -16,37 +16,40 @@ pub unsafe fn sort(image: Vec<u8>, width: usize, height: usize, level: u16) -> V
     let level = i32::from(level);
 
     let sorted = transposed
-        .iter()
-        .map(|row| {
-            let mut row_separated = vec![vec![row[0]]];
-            for pixel in row.iter().skip(1) {
-                let last_section = row_separated.last_mut().unwrap();
-                let last_pixel = last_section.last().unwrap();
-                // let total_diff = u16::from(last_pixel.0.abs_diff(pixel.0))
-                //     + u16::from(last_pixel.1.abs_diff(pixel.1))
-                //     + u16::from(last_pixel.2.abs_diff(pixel.2))
-                //     + u16::from(last_pixel.3.abs_diff(pixel.3));
-                let diffs = i32x4_abs(i32x4_sub(*last_pixel, *pixel));
-                let total_diff = i32x4_extract_lane::<0>(diffs)
-                    + i32x4_extract_lane::<1>(diffs)
-                    + i32x4_extract_lane::<2>(diffs)
-                    + i32x4_extract_lane::<3>(diffs);
+        .into_iter()
+        .map(|mut row| {
+            if row.is_empty() {
+                return row;
+            }
+            let mut sections = vec![(0, 1)];
+            for i in 1..row.len() {
+                let last_pixel_of_section = row[sections.last().unwrap().1 - 1];
+                let current_pixel = row[i];
+
+                let diffs = i32x4_abs(i32x4_sub(last_pixel_of_section, current_pixel));
+                let x_shuffled = i32x4_shuffle::<1, 0, 3, 2>(diffs, i32x4_splat(0));
+                let sum1 = i32x4_add(diffs, x_shuffled);
+                let x_shuffled2 = i32x4_shuffle::<2, 3, 0, 1>(sum1, i32x4_splat(0));
+                let sum2 = i32x4_add(sum1, x_shuffled2);
+                let total_diff = i32x4_extract_lane::<0>(sum2);
+
                 if total_diff > level {
-                    row_separated.push(vec![*pixel]);
+                    sections.push((i, i + 1));
                 } else {
-                    last_section.push(*pixel);
+                    sections.last_mut().unwrap().1 = i + 1;
                 }
             }
-            for section in row_separated.iter_mut() {
-                section.sort_by_key(|x| {
-                    let r = i32x4_extract_lane::<0>(*x);
-                    let g = i32x4_extract_lane::<1>(*x);
-                    let b = i32x4_extract_lane::<2>(*x);
-                    let a = i32x4_extract_lane::<3>(*x);
-                    -(r + g + b + a)
+
+            for (start, end) in sections {
+                row[start..end].sort_by_key(|x| {
+                    let x_shuffled = i32x4_shuffle::<1, 0, 3, 2>(*x, i32x4_splat(0));
+                    let sum1 = i32x4_add(*x, x_shuffled);
+                    let x_shuffled2 = i32x4_shuffle::<2, 3, 0, 1>(sum1, i32x4_splat(0));
+                    let sum2 = i32x4_add(sum1, x_shuffled2);
+                    -i32x4_extract_lane::<0>(sum2)
                 });
             }
-            row_separated.iter().flatten().copied().collect::<Vec<_>>()
+            row
         })
         .collect::<Vec<_>>();
 
@@ -66,12 +69,30 @@ pub unsafe fn sort(image: Vec<u8>, width: usize, height: usize, level: u16) -> V
 }
 
 fn transpose<T: Copy>(matrix: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    let width = matrix.len();
-    let height = matrix[0].len();
-    let mut transposed = vec![vec![matrix[0][0]; width]; height];
-    for (i, row) in matrix.iter().enumerate() {
-        for (j, v) in row.iter().enumerate() {
-            transposed[j][i] = *v;
+    if matrix.is_empty() || matrix[0].is_empty() {
+        return Vec::new();
+    }
+    let height = matrix.len();
+    let width = matrix[0].len();
+    let default_val = matrix[0][0];
+    let mut transposed = vec![vec![default_val; height]; width];
+
+    const BLOCK_SIZE: usize = 16;
+
+    for i in (0..height).step_by(BLOCK_SIZE) {
+        for j in (0..width).step_by(BLOCK_SIZE) {
+            // for row in i..std::cmp::min(i + BLOCK_SIZE, height) {
+            //     for col in j..std::cmp::min(j + BLOCK_SIZE, width) {
+            //         transposed[col][row] = matrix[row][col];
+            //     }
+            // }
+            for (irow, row) in matrix.iter().enumerate().skip(i).take(BLOCK_SIZE) {
+                for (jcol, &value) in row.iter().enumerate().skip(j).take(BLOCK_SIZE) {
+                    if irow < height && jcol < width {
+                        transposed[jcol][irow] = value;
+                    }
+                }
+            }
         }
     }
     transposed

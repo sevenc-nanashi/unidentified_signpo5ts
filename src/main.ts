@@ -1,6 +1,6 @@
 import p5 from "p5";
 import "./style.css";
-import { draw } from "./draw.ts";
+import { draw, preload } from "./draw.ts";
 import { width, height, frameRate } from "./const.ts";
 import { State } from "./state.ts";
 import audio from "./assets/main.mp3?url";
@@ -13,10 +13,13 @@ audioElement.volume = 0.5;
 
 new p5((p: p5) => {
   const state = new State(0, false);
+  p.preload = () => {
+    audioElement.load();
+    preload(p);
+  };
   p.setup = async () => {
     p.frameRate(frameRate);
     p.createCanvas(width, height);
-    audioElement.load();
   };
 
   p.draw = () => {

@@ -4,9 +4,19 @@ import { bg } from "./const.ts";
 
 const renderers = import.meta.glob("./renderers/*.ts", {
   eager: true,
-}) as Record<string, { draw: (p: p5, state: State) => void }>;
+}) as Record<
+  string,
+  { draw: (p: p5, state: State) => void; preload?: (p: p5) => void }
+>;
 
 let erroredLastFrame = false;
+export const preload = import.meta.hmrify((p: p5) => {
+  for (const renderer of Object.values(renderers)) {
+    if (renderer.preload) {
+      renderer.preload(p);
+    }
+  }
+});
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   try {
     p.background(bg);

@@ -18,6 +18,7 @@ const pixelsortOutMid = 58;
 const pixelsortInMid = 57;
 const pixelsortMid = 56;
 const glitchMid = 55;
+const dimMid = 54;
 
 const backgroundTrack = loadTimelineWithText(
   "backgrounds",
@@ -36,6 +37,7 @@ const loadedImages: Record<string, p5.Image> = {};
 let pixelizeShader: p5.Shader;
 let cpuGraphics: p5.Graphics;
 let mainGraphics: p5.Graphics;
+let cpuTempGraphics: p5.Graphics;
 
 const particleMidi = 48;
 
@@ -80,18 +82,29 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   if (!pixelizeShader) {
     pixelizeShader = p.createShader(commonVert, backgroundFrag);
   }
-  if (!mainGraphics) {
-    cpuGraphics = p.createGraphics(p.width * minusScale, p.height * minusScale);
-    mainGraphics = p.createGraphics(
-      p.width * minusScale,
-      p.height * minusScale,
-      p.WEBGL,
-    );
-
-    mainGraphics.shader(pixelizeShader);
-  }
+  mainGraphics = import.meta.autoGraphics(
+    p,
+    "backgroundMain",
+    p.width * minusScale,
+    p.height * minusScale,
+    p.WEBGL,
+  );
+  cpuGraphics = import.meta.autoGraphics(
+    p,
+    "backgroundCpu",
+    p.width * minusScale,
+    p.height * minusScale,
+  );
+  cpuTempGraphics = import.meta.autoGraphics(
+    p,
+    "backgroundCpuTemp",
+    p.width * minusScale,
+    p.height * minusScale,
+  );
+  mainGraphics.shader(pixelizeShader);
 
   mainGraphics.clear();
+
   const currentTick = state.currentTick;
   const activeBackgroundNote = backgroundTrack.track.notes.find(
     (note) =>
@@ -149,6 +162,15 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       loadedImages[backgroundName].height,
       p.COVER,
     );
+    const dimNote = backgroundTrack.track.notes.find(
+      (note) =>
+        note.ticks <= currentTick &&
+        note.ticks + note.durationTicks > currentTick &&
+        note.midi === dimMid,
+    );
+    if (dimNote) {
+      cpuGraphics.background(0, 0, 0, 255 * dimNote.velocity);
+    }
 
     const glitchNote = backgroundTrack.track.notes.find(
       (note) =>
@@ -157,13 +179,16 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
         note.midi === glitchMid,
     );
     if (glitchNote) {
-      const rand = new Rand(`${glitchNote.ticks}:${backgroundName}:${glitchNote.velocity}:${randomSeed}`);
+      cpuTempGraphics.clear();
+      const rand = new Rand(
+        `${glitchNote.ticks}:${backgroundName}:${glitchNote.velocity}:${randomSeed}`,
+      );
       for (let i = 0; i < Math.round(rand.next() * 15); i++) {
         const w = (rand.next() + 0.5) * 2 * 40 * glitchNote.velocity;
         const h = (rand.next() + 0.5) * 2 * 20 * glitchNote.velocity;
         const x = rand.next() * (cpuGraphics.width - w);
         const y = rand.next() * (cpuGraphics.height - h);
-        cpuGraphics.copy(
+        cpuTempGraphics.image(
           cpuGraphics,
           x,
           y,
@@ -175,6 +200,17 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
           h,
         );
       }
+      cpuGraphics.image(
+        cpuTempGraphics,
+        0,
+        0,
+        cpuTempGraphics.width,
+        cpuTempGraphics.height,
+        0,
+        0,
+        cpuGraphics.width,
+        cpuGraphics.height,
+      );
     }
 
     if (sortNote) {
@@ -285,9 +321,3 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
 //     particleGraphics.circle(x, y, elapsed * particleScale * scaleBase);
 //   }
 // };
-
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    mainGraphics?.remove();
-  });
-}
