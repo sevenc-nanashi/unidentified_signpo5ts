@@ -291,7 +291,7 @@ const drawParticles = (p: p5, state: State) => {
   );
   using _context = useRendererContext(particleGraphics);
   particleGraphics.noSmooth();
-  particleGraphics.translate(p.width / dotUnit / 2, (p.height / dotUnit) * 0.4);
+  particleGraphics.translate(p.width / dotUnit / 2, (p.height / dotUnit) * 0.5);
 
   particleGraphics.clear();
 
