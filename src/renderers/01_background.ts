@@ -46,7 +46,7 @@ let particleGraphics: p5.Graphics;
 
 const particleInterval = 90;
 const particleSpeed = 0.02;
-const particleScale = 0.0003;
+const particleScale = 0.0005;
 const colorScale = 0.00005;
 
 const wave = 1;

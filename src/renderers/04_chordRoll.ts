@@ -74,9 +74,9 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     );
 
     if (hasTycChorus) {
-      graphics.fill(...saturate(tycColor, 0.25), isActive ? 255 : 64);
+      graphics.fill(...saturate(tycColor, 0.5), isActive ? 255 : 64);
     } else if (hasReiChorus) {
-      graphics.fill(...saturate(reiColor, 0.25), isActive ? 255 : 64);
+      graphics.fill(...saturate(reiColor, 0.5), isActive ? 255 : 64);
     } else {
       graphics.fill(255, isActive ? 255 : 64);
     }
