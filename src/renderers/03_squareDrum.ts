@@ -13,6 +13,7 @@ const visualizerTimeline = timeline.tracks.find(
   (track) => track.name === "visualizer",
 )!;
 const activateMidi = 67;
+const shiftLockMidi = 68;
 
 const size = height * 0.35;
 
@@ -51,6 +52,13 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   );
   if (!activateNote) return;
 
+  const shiftLockNote = visualizerTimeline.notes.find(
+    (note) =>
+      note.ticks <= state.currentTick &&
+      state.currentTick < note.ticks + note.durationTicks &&
+      note.midi === shiftLockMidi,
+  );
+
   graphics.clear();
 
   {
@@ -59,8 +67,9 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     drumGraphics.noSmooth();
     drumGraphics.translate(dotUnit, dotUnit);
     drawDrumVisualizer(p, state, drumGraphics, drumTempGraphics, activateNote);
-    const shift =
-      easeInQuint(p.map(state.currentMeasure % 1, 0.5, 1, 0, 1, true)) * 0.8;
+    const shift = shiftLockNote
+      ? 0
+      : easeInQuint(p.map(state.currentMeasure % 1, 0.5, 1, 0, 1, true)) * 0.8;
     using _context2 = useRendererContext(graphics);
     graphics.drawingContext.shadowColor = "#444f";
     graphics.drawingContext.shadowBlur = dotUnit * 2;
