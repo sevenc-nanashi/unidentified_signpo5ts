@@ -23,8 +23,11 @@ void main() {
     }
   }
   color = floor(color * pixelQuantize) / pixelQuantize;
-  vec4 glow = texture2D(u_glowTexture, uv);
+  vec2 uvGlow = xy / u_resolution;
+  vec4 glow = texture2D(u_glowTexture, uvGlow);
   color = 1.0 - (1.0 - color) * (1.0 - glow * u_glowLevel);
 
   gl_FragColor = color;
 }
+
+// vim: set ft=glsl sw=2 ts=2 et:

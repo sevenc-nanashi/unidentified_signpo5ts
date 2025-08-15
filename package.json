@@ -38,6 +38,10 @@
 	"pnpm": {
 		"onlyBuiltDependencies": [
 			"sharp"
-		]
+		],
+		"patchedDependencies": {
+			"p5": "patches/p5.patch",
+			"@types/p5": "patches/@types__p5.patch"
+		}
 	}
 }

@@ -4,12 +4,12 @@ import { dotUnit, reiColor, tycColor } from "../const";
 import { easeInQuint, easeOutQuint, lerp } from "../easing";
 import { loadTimelineWithText } from "../midi";
 import commonVert from "../shaders/common.vert?raw";
-import backgroundFrag from "../shaders/background.frag?raw";
 import timelineMid, {
   rawMidi as timelineRawMid,
 } from "../assets/timeline.mid?mid";
 import type { State } from "../state";
 import { resizeWithAspectRatio, saturate, useRendererContext } from "../utils";
+import foregroundFrag from "../shaders/foreground.frag?raw";
 import Rand from "rand-seed";
 
 const imageSwitchMid = 60;
@@ -20,8 +20,10 @@ const pixelsortMid = 56;
 const glitchMid = 55;
 const dimMid = 54;
 
-const backgroundTrack = loadTimelineWithText(
-  "backgrounds",
+const maxShift = 1;
+
+const foregroundTrack = loadTimelineWithText(
+  "foregrounds",
   timelineMid,
   timelineRawMid,
   {
@@ -29,27 +31,15 @@ const backgroundTrack = loadTimelineWithText(
   },
 );
 
-const images = import.meta.glob("../assets/backgrounds/*.{png,jpg}", {
+const images = import.meta.glob("../assets/foregrounds/*.{png,jpg}", {
   eager: true,
 }) as Record<string, { default: string }>;
 
 const loadedImages: Record<string, p5.Image> = {};
-let pixelizeShader: p5.Shader;
 let cpuGraphics: p5.Graphics;
+let foregroundShader: p5.Shader;
 let mainGraphics: p5.Graphics;
 let cpuTempGraphics: p5.Graphics;
-
-const particleMidi = 48;
-
-let particleGraphics: p5.Graphics;
-
-const particleInterval = 90;
-const particleSpeed = 0.02;
-const particleScale = 0.0003;
-const colorScale = 0.00005;
-
-const wave = 1;
-const minusScale = 1 / 4;
 
 export const preload = import.meta.hmrify((p: p5) => {
   for (const [path, image] of Object.entries(images)) {
@@ -75,91 +65,76 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     preload(p);
     return;
   }
-  if (!pixelizeShader) {
-    pixelizeShader = p.createShader(commonVert, backgroundFrag);
+  if (!foregroundShader) {
+    foregroundShader = p.createShader(commonVert, foregroundFrag);
   }
   mainGraphics = import.meta.autoGraphics(
     p,
-    "backgroundMain",
+    "foregroundMain",
     p.width,
     p.height,
     p.WEBGL,
   );
+  mainGraphics.shader(foregroundShader);
   cpuGraphics = import.meta.autoGraphics(
     p,
-    "backgroundCpu",
-    p.width * minusScale,
-    p.height * minusScale,
+    "foregroundCpu",
+    p.width,
+    p.height,
     p.CPU,
   );
   cpuTempGraphics = import.meta.autoGraphics(
     p,
-    "backgroundCpuTemp",
-    p.width * minusScale,
-    p.height * minusScale,
+    "foregroundCpuTemp",
+    p.width,
+    p.height,
   );
-  mainGraphics.shader(pixelizeShader);
 
   mainGraphics.clear();
 
   const currentTick = state.currentTick;
-  const activeBackgroundNote = backgroundTrack.track.notes.find(
+  const activeForegroundNote = foregroundTrack.track.notes.find(
     (note) =>
       note.ticks <= currentTick &&
       note.ticks + note.durationTicks > currentTick &&
       note.midi >= imageSwitchMid,
   );
-  if (!activeBackgroundNote) {
+  if (!activeForegroundNote) {
     return;
   }
 
-  const sortNote = backgroundTrack.track.notes.find(
+  const sortNote = foregroundTrack.track.notes.find(
     (note) =>
       note.ticks <= currentTick &&
       note.ticks + note.durationTicks > currentTick &&
       [pixelsortInMid, pixelsortOutMid, pixelsortMid].includes(note.midi),
   );
-
-  let backgroundTextEvent = backgroundTrack.texts.findLast(
-    (text) => text.time <= activeBackgroundNote.ticks,
+  let foregroundTextEvent = foregroundTrack.texts.findLast(
+    (text) => text.time <= activeForegroundNote.ticks,
   );
-  if (!backgroundTextEvent) {
+  if (!foregroundTextEvent) {
     throw new Error(
-      `No background text event found for ticks ${activeBackgroundNote.ticks}`,
+      `No foreground text event found for ticks ${activeForegroundNote.ticks}`,
     );
   }
-  let backgroundName = backgroundTextEvent.text;
-  if (backgroundTextEvent.note.ticks !== activeBackgroundNote.ticks) {
-    const suffix = backgroundName.match(/-([0-9]+)/);
-    if (!suffix) {
-      throw new Error(
-        `No suffix found in background name "${backgroundName}" for ticks ${activeBackgroundNote.ticks}`,
-      );
-    }
-    const suffixNumber = parseInt(suffix[1], 10);
-    const newSuffix =
-      suffixNumber + activeBackgroundNote.midi - backgroundTextEvent.note.midi;
-    backgroundName = backgroundName.replace(
-      /-[0-9]+/,
-      `-${newSuffix.toString().padStart(suffix[1].length, "0")}`,
-    );
-  }
+  let foregroundName = foregroundTextEvent.text;
 
-  if (activeBackgroundNote && loadedImages[backgroundName]) {
+  if (activeForegroundNote && loadedImages[foregroundName]) {
+    const shift = activeForegroundNote.midi - imageSwitchMid;
     cpuGraphics.clear();
     cpuGraphics.image(
-      loadedImages[backgroundName],
+      loadedImages[foregroundName],
       0,
-      0,
+      (maxShift - shift) * dotUnit,
       cpuGraphics.width,
       cpuGraphics.height,
       0,
       0,
-      loadedImages[backgroundName].width,
-      loadedImages[backgroundName].height,
+      loadedImages[foregroundName].width,
+      loadedImages[foregroundName].height,
       p.COVER,
     );
-    const dimNote = backgroundTrack.track.notes.find(
+    const dimNote = foregroundTrack.track.notes.find(
       (note) =>
         note.ticks <= currentTick &&
         note.ticks + note.durationTicks > currentTick &&
@@ -169,7 +144,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       cpuGraphics.background(0, 0, 0, 255 * dimNote.velocity);
     }
 
-    const glitchNote = backgroundTrack.track.notes.find(
+    const glitchNote = foregroundTrack.track.notes.find(
       (note) =>
         note.ticks <= currentTick &&
         note.ticks + note.durationTicks > currentTick &&
@@ -178,7 +153,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     if (glitchNote) {
       cpuTempGraphics.clear();
       const rand = new Rand(
-        `${glitchNote.ticks}:${backgroundName}:${glitchNote.velocity}`,
+        `${glitchNote.ticks}:${foregroundName}:${glitchNote.velocity}`,
       );
       for (let i = 0; i < Math.round(rand.next() * 15); i++) {
         const w = (rand.next() + 0.5) * 2 * 40 * glitchNote.velocity;
@@ -221,7 +196,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
         cpuGraphics.pixels as unknown as Uint8Array,
         cpuGraphics.width,
         cpuGraphics.height,
-        512 *
+        -512 *
           (sortNote.midi === pixelsortMid
             ? sortNote.velocity
             : lerp(
@@ -237,26 +212,16 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       }
       cpuGraphics.updatePixels(0, 0, cpuGraphics.width, cpuGraphics.height);
     }
-    pixelizeShader.setUniform("u_resolution", [
+
+    foregroundShader.setUniform("u_resolution", [
       mainGraphics.width,
       mainGraphics.height,
     ]);
-
-    const currentMeasure = state.currentMeasure;
-    pixelizeShader.setUniform(
-      "u_wave",
-      Math.sin(currentMeasure * Math.PI) * wave * minusScale,
-    );
-    pixelizeShader.setUniform("u_pixelSize", dotUnit / minusScale);
-    pixelizeShader.setUniform("u_texture", cpuGraphics);
-    drawParticles(p, state);
-    pixelizeShader.setUniform("u_glowTexture", particleGraphics);
-    pixelizeShader.setUniform("u_glowLevel", 0.9);
-
+    foregroundShader.setUniform("u_texture", cpuGraphics);
     mainGraphics.quad(-1, -1, 1, -1, 1, 1, -1, 1);
   }
 
-  const alphaNote = backgroundTrack.track.notes.find(
+  const alphaNote = foregroundTrack.track.notes.find(
     (note) =>
       note.ticks <= currentTick &&
       note.ticks + note.durationTicks > currentTick &&
@@ -269,62 +234,3 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   p.noSmooth();
   p.image(mainGraphics, 0, 0, p.width, p.height);
 });
-
-const drawParticles = (p: p5, state: State) => {
-  particleGraphics = import.meta.autoGraphics(
-    p,
-    "particleGraphics",
-    p.width / dotUnit,
-    p.height / dotUnit,
-  );
-  using _context = useRendererContext(particleGraphics);
-  particleGraphics.noSmooth();
-  particleGraphics.translate(p.width / dotUnit / 2, (p.height / dotUnit) * 0.4);
-
-  particleGraphics.clear();
-
-  const particleNote = backgroundTrack.track.notes.find(
-    (note) =>
-      note.midi === particleMidi &&
-      note.ticks <= state.currentTick &&
-      state.currentTick < note.ticks + note.durationTicks,
-  );
-  if (!particleNote) return;
-
-  const rotate = state.currentTick * 0.0001;
-  particleGraphics.fill(255, 255, 255, 255);
-  particleGraphics.noStroke();
-  particleGraphics.noSmooth();
-  const actualInterval = Math.round(particleInterval / particleNote.velocity);
-  for (
-    let f = particleNote.ticks - particleInterval * 256;
-    f < state.currentTick;
-    f += actualInterval
-  ) {
-    using _context = useRendererContext(particleGraphics);
-    const rand = new Rand(
-      `${particleNote.ticks}:${particleNote.velocity}:${f}`,
-    );
-    const frames = f - particleNote.ticks;
-    const elapsed = state.currentTick - f;
-    const direction = f * 0.0001 + rotate + rand.next() * Math.PI * 2;
-    const x = Math.cos(direction) * elapsed * particleSpeed;
-    const y = Math.sin(direction) * elapsed * particleSpeed;
-
-    if ((frames / actualInterval) % 2 === 0) {
-      particleGraphics.fill(
-        ...saturate(tycColor, elapsed * colorScale * particleNote.velocity),
-      );
-    } else {
-      particleGraphics.fill(
-        ...saturate(reiColor, elapsed * colorScale * particleNote.velocity),
-      );
-    }
-
-    const scaleBase = Math.abs(Math.sin(frames * 0.01 + particleNote.ticks));
-
-    particleGraphics.rotate(Math.PI / 4);
-    particleGraphics.rectMode(p.CENTER);
-    particleGraphics.rect(x, y, elapsed * particleScale * scaleBase);
-  }
-};

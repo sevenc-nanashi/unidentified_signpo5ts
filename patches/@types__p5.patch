@@ -1,0 +1,47 @@
+diff --git a/constants.d.ts b/constants.d.ts
+index 57475f305a2f13caa5389de33f14576240a3d2cf..e208d2b2b5e609d2a50c6318b94f35d308379c6c 100644
+--- a/constants.d.ts
++++ b/constants.d.ts
+@@ -38,7 +38,7 @@ declare module './index' {
+ 
+     type FILTER_TYPE = THRESHOLD | GRAY | OPAQUE | INVERT | POSTERIZE | ERODE | DILATE | BLUR;
+ 
+-    type GRAPHICS_RENDERER = P2D | WEBGL;
++    type GRAPHICS_RENDERER = P2D | CPU | WEBGL;
+ 
+     type GRID_DISPLAY = FALLBACK | LABEL;
+ 
+@@ -50,7 +50,7 @@ declare module './index' {
+ 
+     type RECT_MODE = CORNER | CORNERS | CENTER | RADIUS;
+ 
+-    type RENDERER = P2D | WEBGL;
++    type RENDERER = P2D | CPU | WEBGL;
+ 
+     type SIZE_H = AUTO;
+ 
+diff --git a/literals.d.ts b/literals.d.ts
+index c416cfb6d4a010fc6dbf04f7105cf4a72f3d2535..c93ec4da8e3382dc85e2ad735e584c1206053b3c 100644
+--- a/literals.d.ts
++++ b/literals.d.ts
+@@ -23,6 +23,7 @@ declare module './index' {
+     type CORNER = 'corner';
+     type CORNERS = 'corners';
+     type COVER = 'cover';
++    type CPU = 'cpu';
+     type CROSS = 'cross';
+     type CURVE = 'curve';
+     type DARKEST = 'darkest';
+diff --git a/src/core/constants.d.ts b/src/core/constants.d.ts
+index ddb5823205b4aea807f28f85e9ae5a2d3dee5599..6fc32f9aacc8bb5680001158cac36a568486494f 100644
+--- a/src/core/constants.d.ts
++++ b/src/core/constants.d.ts
+@@ -14,6 +14,8 @@ declare module '../../index' {
+          */
+         readonly P2D: P2D;
+ 
++        readonly CPU: CPU;
++
+         /**
+          *   One of the two render modes in p5.js, used for
+          *   computationally intensive tasks like 3D rendering

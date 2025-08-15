@@ -2,9 +2,9 @@ use core::arch::wasm32::*;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub unsafe fn sort(image: Vec<u8>, width: usize, height: usize, level: u16) -> Vec<u8> {
+pub unsafe fn sort(image: Vec<u8>, width: usize, height: usize, level: i16) -> Vec<u8> {
     console_error_panic_hook::set_once();
-    let level = i32::from(level);
+    let abs_level = i32::from(level).abs();
 
     let mut transposed = vec![vec![i32x4_splat(0); height]; width];
     for y in 0..height {
@@ -42,7 +42,7 @@ pub unsafe fn sort(image: Vec<u8>, width: usize, height: usize, level: u16) -> V
             let sum2 = i32x4_add(sum1, x_shuffled2);
             let total_diff = i32x4_extract_lane::<0>(sum2);
 
-            if total_diff > level {
+            if total_diff > abs_level {
                 sections.push((i, i + 1));
             } else {
                 sections.last_mut().unwrap().1 = i + 1;
@@ -55,7 +55,11 @@ pub unsafe fn sort(image: Vec<u8>, width: usize, height: usize, level: u16) -> V
                 let sum1 = i32x4_add(*x, x_shuffled);
                 let x_shuffled2 = i32x4_shuffle::<2, 3, 0, 1>(sum1, i32x4_splat(0));
                 let sum2 = i32x4_add(sum1, x_shuffled2);
-                -i32x4_extract_lane::<0>(sum2)
+                if level < 0 {
+                    i32x4_extract_lane::<0>(sum2)
+                } else {
+                    -i32x4_extract_lane::<0>(sum2)
+                }
             });
         }
     }

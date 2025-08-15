@@ -13,6 +13,7 @@ audioElement.volume = 0.5;
 
 new p5((p: p5) => {
   const state = new State(0, false);
+  p.disableFriendlyErrors = true;
   p.preload = () => {
     audioElement.load();
     preload(p);
@@ -48,26 +49,17 @@ function keydown(p: p5, state: State) {
     if (e.key === " ") {
       state.playing = !state.playing;
     }
+    if (e.key === "l") {
+      forward(1 / frameRate);
+    }
     if (e.key === "ArrowRight") {
-      console.log("current time", audioElement.currentTime);
-      audioElement.currentTime += 5;
-      console.log("forward to", audioElement.currentTime);
-      state.currentFrame = audioElement.currentTime * frameRate;
+      forward(5);
+    }
+    if (e.key === "h") {
+      rewind(1 / frameRate);
     }
     if (e.key === "ArrowLeft") {
-      // state.currentFrame -= frameRate * 5;
-      // if (state.currentFrame < 0) {
-      //   state.currentFrame = 0;
-      // }
-      // audioElement.currentTime = state.currentFrame / frameRate;
-      console.log(audioElement.currentTime);
-      if (audioElement.currentTime > 5) {
-        audioElement.currentTime -= 5;
-      } else {
-        audioElement.currentTime = 0;
-      }
-      console.log("rewind to", audioElement.currentTime);
-      state.currentFrame = audioElement.currentTime * frameRate;
+      rewind(5);
     }
     if (e.key === "ArrowUp") {
       audioElement.volume += 0.1;
@@ -90,6 +82,23 @@ function keydown(p: p5, state: State) {
       });
     }
   };
+
+  function forward(duration: number) {
+    if (audioElement.currentTime + duration < audioElement.duration) {
+      audioElement.currentTime += duration;
+    } else {
+      audioElement.currentTime = audioElement.duration;
+    }
+    state.currentFrame = audioElement.currentTime * frameRate;
+  }
+  function rewind(duration: number) {
+    if (audioElement.currentTime - duration > 0) {
+      audioElement.currentTime -= duration;
+    } else {
+      audioElement.currentTime = 0;
+    }
+    state.currentFrame = audioElement.currentTime * frameRate;
+  }
 }
 
 if (import.meta.hot) {

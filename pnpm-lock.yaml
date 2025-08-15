@@ -4,6 +4,14 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@types/p5':
+    hash: d09744979fc5ce8bac51adbe16caa97edd1532d38080051250623ff75ce800ae
+    path: patches/@types__p5.patch
+  p5:
+    hash: 9a81544847af4d36f42d965cda2204f3d1dc8ad3dde52aaf5df35c3c0e09ffd8
+    path: patches/p5.patch
+
 importers:
 
   .:
@@ -22,7 +30,7 @@ importers:
         version: 1.2.4
       p5:
         specifier: '1'
-        version: 1.11.3
+        version: 1.11.3(patch_hash=9a81544847af4d36f42d965cda2204f3d1dc8ad3dde52aaf5df35c3c0e09ffd8)
       p5-frame-capturer:
         specifier: ^0.4.2
         version: 0.4.2
@@ -53,7 +61,7 @@ importers:
         version: 22.13.4
       '@types/p5':
         specifier: ^1.7.6
-        version: 1.7.6
+        version: 1.7.6(patch_hash=d09744979fc5ce8bac51adbe16caa97edd1532d38080051250623ff75ce800ae)
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -1427,7 +1435,7 @@ snapshots:
     dependencies:
       undici-types: 6.20.0
 
-  '@types/p5@1.7.6': {}
+  '@types/p5@1.7.6(patch_hash=d09744979fc5ce8bac51adbe16caa97edd1532d38080051250623ff75ce800ae)': {}
 
   argparse@2.0.1: {}
 
@@ -1550,9 +1558,9 @@ snapshots:
     dependencies:
       vanjs-core: 1.5.5
     optionalDependencies:
-      '@types/p5': 1.7.6
+      '@types/p5': 1.7.6(patch_hash=d09744979fc5ce8bac51adbe16caa97edd1532d38080051250623ff75ce800ae)
 
-  p5@1.11.3: {}
+  p5@1.11.3(patch_hash=9a81544847af4d36f42d965cda2204f3d1dc8ad3dde52aaf5df35c3c0e09ffd8): {}
 
   pako@1.0.11: {}
 
