@@ -125,7 +125,7 @@ const drawCharacter = (
 
     jumpShift = Math.ceil(jumpShiftProgress * jumpHeight);
 
-    if (jumpShift > 1) {
+    if (jumpShift > 0) {
       graphics.fill(
         255,
         255,

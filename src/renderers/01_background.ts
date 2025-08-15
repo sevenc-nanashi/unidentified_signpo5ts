@@ -19,6 +19,7 @@ const pixelsortInMid = 57;
 const pixelsortMid = 56;
 const glitchMid = 55;
 const dimMid = 54;
+const waveOverrideMid = 53;
 
 const backgroundTrack = loadTimelineWithText(
   "backgrounds",
@@ -242,10 +243,21 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       mainGraphics.height,
     ]);
 
+    const waveOverrideNote = backgroundTrack.track.notes.find(
+      (note) =>
+        note.ticks <= currentTick &&
+        note.ticks + note.durationTicks > currentTick &&
+        note.midi === waveOverrideMid,
+    );
+
     const currentMeasure = state.currentMeasure;
     pixelizeShader.setUniform(
       "u_wave",
-      Math.sin(currentMeasure * Math.PI) * wave * minusScale,
+      Math.sin(currentMeasure * Math.PI) *
+        (waveOverrideNote
+          ? waveOverrideNote.velocity * dotUnit * 4 + wave
+          : wave) *
+        minusScale,
     );
     pixelizeShader.setUniform("u_pixelSize", dotUnit / minusScale);
     pixelizeShader.setUniform("u_texture", cpuGraphics);

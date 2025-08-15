@@ -20,6 +20,8 @@ const pixelsortMid = 56;
 const glitchMid = 55;
 const dimMid = 54;
 
+const shiftBaseMid = 48;
+
 const maxShift = 1;
 
 const foregroundTrack = loadTimelineWithText(
@@ -118,9 +120,29 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     );
   }
   let foregroundName = foregroundTextEvent.text;
+  if (foregroundTextEvent.note.ticks !== activeForegroundNote.ticks) {
+    const suffix = foregroundName.match(/-([0-9]+)/);
+    if (!suffix) {
+      throw new Error(`No suffix found in foreground name: ${foregroundName}`);
+    }
+    const suffixNumber = parseInt(suffix[1], 10);
+    const newSuffix =
+      suffixNumber + activeForegroundNote.midi - foregroundTextEvent.note.midi;
+    foregroundName = foregroundName.replace(
+      /-[0-9]+/,
+      `-${newSuffix.toString().padStart(suffix[1].length, "0")}`,
+    );
+  }
+  const shiftMidi = foregroundTrack.track.notes.find(
+    (note) =>
+      note.ticks <= currentTick &&
+      note.ticks + note.durationTicks > currentTick &&
+      note.midi >= shiftBaseMid &&
+      note.midi <= shiftBaseMid + maxShift,
+  );
+  const shift = shiftMidi ? shiftMidi.midi - shiftBaseMid : 0;
 
   if (activeForegroundNote && loadedImages[foregroundName]) {
-    const shift = activeForegroundNote.midi - imageSwitchMid;
     cpuGraphics.clear();
     cpuGraphics.image(
       loadedImages[foregroundName],
