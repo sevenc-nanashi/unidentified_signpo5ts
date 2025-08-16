@@ -12,6 +12,7 @@ const visualizerTimeline = timeline.tracks.find(
 const activateMidi = 63;
 const ballActivateMidi = 64;
 const secondBallActivateMidi = 65;
+const sectionProgressMidi = 69;
 const radius = 150 * dotUnit;
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   const activateNote = visualizerTimeline.notes.find(
@@ -33,6 +34,21 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       state.currentTick < note.ticks + note.durationTicks &&
       note.midi === secondBallActivateMidi,
   );
+  const sectionProgressNote = visualizerTimeline.notes.find(
+    (note) =>
+      note.ticks <= state.currentTick &&
+      state.currentTick < note.ticks + note.durationTicks &&
+      note.midi === sectionProgressMidi,
+  );
+  const sectionProgress = sectionProgressNote
+    ? p.map(
+        state.currentTick,
+        sectionProgressNote.ticks,
+        sectionProgressNote.ticks + sectionProgressNote.durationTicks,
+        0,
+        1,
+      )
+    : 0;
 
   const graphics = import.meta.autoGraphics(
     p,
@@ -47,7 +63,6 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   graphics.scale(1 / dotUnit);
   graphics.noSmooth();
   graphics.noFill();
-  graphics.stroke(255, 255, 255, 128);
   graphics.strokeWeight(dotUnit);
 
   for (let i = 0; i < 4; i++) {
@@ -57,7 +72,19 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     const nx = Math.cos(angle2) * radius;
     const y = Math.sin(angle) * radius;
     const ny = Math.sin(angle2) * radius;
+
+    graphics.stroke(255, 255, 255, 64);
     graphics.line(x, y, nx, ny);
+
+    if (sectionProgress > 0.25 * i) {
+      graphics.stroke(255, 255, 255);
+      graphics.line(
+        x,
+        y,
+        p.map(sectionProgress, 0.25 * i, 0.25 * (i + 1), x, nx, true),
+        p.map(sectionProgress, 0.25 * i, 0.25 * (i + 1), y, ny, true),
+      );
+    }
 
     if (ballActivateNote) {
       if (
