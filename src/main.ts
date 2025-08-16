@@ -5,7 +5,11 @@ import { width, height, frameRate } from "./const.ts";
 import { State } from "./state.ts";
 import audio from "./assets/main.mp3?url";
 // import { attachCapturerUi } from "p5-frame-capturer";
-import { state as capturerState, startCapturer } from "p5-frame-capturer";
+import {
+  attachCapturerUi,
+  state as capturerState,
+  startCapturer,
+} from "p5-frame-capturer";
 
 const audioElement = new Audio(audio);
 audioElement.autoplay = false;
@@ -41,7 +45,7 @@ new p5((p: p5) => {
 
   p.keyPressed = keydown(p, state);
 
-  // attachCapturerUi(p);
+  attachCapturerUi(p);
 });
 
 function keydown(p: p5, state: State) {
