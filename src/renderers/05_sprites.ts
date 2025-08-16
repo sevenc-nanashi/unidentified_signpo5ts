@@ -134,7 +134,7 @@ const drawCharacter = (
       );
       graphics.noStroke();
       const footWidth = atlas.yellowPixels[1][0] - atlas.yellowPixels[0][0];
-      const baseX = atlas.yellowPixels[1][0] - atlas.start[0] - atlas.width / 2;
+      const baseX = Math.round(atlas.yellowPixels[1][0] - atlas.start[0] - atlas.width / 2);
       const rand = new Rand(`${jumpSeed}:${name}:${jumpShift}`);
       graphics.rect(
         baseX - footWidth - 2,
