@@ -1,10 +1,10 @@
 import p5 from "p5";
 import { State } from "../state.ts";
 import { smallFont } from "../const.ts";
-import { state as capturerState } from "p5-frame-capturer";
 import { useRendererContext } from "../utils.ts";
 
 const drawLine = false;
+const drawFps = false;
 const numVLines = 9;
 const numHLines = 9;
 export const draw = import.meta.hmrify((p: p5, state: State) => {
@@ -22,7 +22,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     }
   }
 
-  if (!capturerState.isCapturing) {
+  if (drawFps) {
     p.fill(255);
     p.noStroke();
     p.textSize(16);
