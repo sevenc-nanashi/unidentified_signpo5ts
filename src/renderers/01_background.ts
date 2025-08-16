@@ -260,6 +260,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
         minusScale,
     );
     pixelizeShader.setUniform("u_pixelSize", dotUnit / minusScale);
+    pixelizeShader.setUniform("u_glowPixelSize", dotUnit * 2);
     pixelizeShader.setUniform("u_texture", cpuGraphics);
     drawParticles(p, state);
     pixelizeShader.setUniform("u_glowTexture", particleGraphics);
