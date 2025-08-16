@@ -303,7 +303,7 @@ const drawParticles = (p: p5, state: State) => {
   );
   if (!particleNote) return;
 
-  const rotate = state.currentTick * 0.0001;
+  const rotate = state.currentTick * -0.0001;
   particleGraphics.fill(255, 255, 255, 255);
   particleGraphics.noStroke();
   particleGraphics.noSmooth();

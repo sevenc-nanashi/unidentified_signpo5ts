@@ -50,13 +50,14 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     );
   }
 
-  const fadeNote = flashTimeline.notes.find(
+  const fadeNotes = flashTimeline.notes.filter(
     (note) =>
       note.ticks <= state.currentTick &&
       state.currentTick < note.ticks + note.durationTicks &&
-      note.midi === fadeMidi,
+      note.midi >= fadeMidi &&
+      note.midi < fadeMidi + 12,
   );
-  if (fadeNote) {
+  for (const fadeNote of fadeNotes) {
     p.background(
       255,
       p.map(

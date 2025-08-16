@@ -67,6 +67,11 @@ function keydown(p: p5, state: State) {
     if (e.key === "ArrowDown") {
       audioElement.volume -= 0.1;
     }
+    if (e.key === "0") {
+      audioElement.currentTime = 0;
+      state.currentFrame = 0;
+    }
+
     if (e.key === "r") {
       startCapturer(p, {
         format: "webpLossless",
