@@ -93,6 +93,8 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
   const rightX = +width / 2;
   p.fill(255);
   p.noStroke();
+  p.drawingContext.shadowColor = "#4448";
+  p.drawingContext.shadowBlur = dotUnit * 2;
   const ticksStart = currentSection.notes[0].ticks;
   const ticksEnd =
     currentSection.notes[currentSection.notes.length - 1].ticks +

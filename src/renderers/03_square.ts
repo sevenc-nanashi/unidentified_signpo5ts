@@ -1,10 +1,10 @@
 import p5 from "p5";
 import { State } from "../state.ts";
-import { bg, colors, dotUnit, height, width } from "../const.ts";
+import { colors, dotUnit, height, width } from "../const.ts";
 import { useRendererContext } from "../utils.ts";
 import { DrumDefinition, drumDefinition } from "../drum.ts";
 import { midi } from "../midi.ts";
-import { easeInQuint, easeOutQuint } from "../easing.ts";
+import { easeOutQuint } from "../easing.ts";
 import timeline from "../assets/timeline.mid?mid";
 import { Track } from "@tonejs/midi";
 import * as drumVisualizer from "../components/drumVisualizer.ts";
@@ -43,12 +43,6 @@ const starSwitch = 1 / 32;
 const drumBaseX = width / 2 - size / 2;
 const drumEndX = width - drumBaseX;
 const drumWidth = drumEndX - drumBaseX;
-const drumBaseY =
-  height / 2 -
-  size / 2 -
-  kickExpand / 2 -
-  dotUnit * 8 -
-  drumVisualizer.cellHeight;
 
 const xPerDrum = (drumWidth - drumVisualizer.cellWidth) / (8 - 1);
 
@@ -59,12 +53,6 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     "background",
     p.width,
     p.height,
-  );
-  const drumGraphics = import.meta.autoGraphics(
-    p,
-    "drum",
-    drumWidth + dotUnit * 2,
-    dotUnit * 2 + drumVisualizer.cellHeight,
   );
   const activateNote = visualizerTimeline.notes.find(
     (note) =>
@@ -107,8 +95,14 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
         drawClapEffects(p, graphics, state, track, notes, activateNote);
         drawStar(p, graphics, state, track, notes, activateNote);
       }
-      drawMiniCymbalEffects(p, graphics, state, track, notes, activateNote);
-      drawCymbalEffects(p, graphics, state, track, notes, activateNote);
+      {
+        using _context = useRendererContext(graphics);
+        graphics.drawingContext.shadowColor = "#4448";
+        graphics.drawingContext.shadowBlur = dotUnit * 2;
+
+        drawMiniCymbalEffects(p, graphics, state, track, notes, activateNote);
+        drawCymbalEffects(p, graphics, state, track, notes, activateNote);
+      }
     }
   }
 
@@ -232,87 +226,6 @@ function drawSnareEffects(
   }
 }
 
-function drawDrumVisualizer(
-  p: p5,
-  state: State,
-  graphics: p5.Graphics,
-  tempGraphics: p5.Graphics,
-  activateNote: Note,
-) {
-  const drums = drumVisualizer.collectDrums(state, activateNote, 0);
-  const flatDrums = drumVisualizer.flattenDrums(drums);
-  const groupedDrums = drumVisualizer.groupedDrumsByType(flatDrums);
-
-  for (const [note, noteType] of groupedDrums) {
-    if (note.ticks > state.currentTick) {
-      continue;
-    }
-
-    const numBeats = drumVisualizer.getNumBeats(note.ticks);
-    const measure = midi.header.ticksToMeasures(note.ticks);
-    const measureDivision =
-      Math.floor((measure % 1) * numBeats + 0.00001) + (8 - numBeats);
-    const sliceType = drumVisualizer.getSliceType(note, flatDrums);
-    let alpha = 255;
-    if (measure < Math.floor(state.currentMeasure)) {
-      const progress = Math.min((state.currentMeasure % 1) / 0.5, 1);
-      const eased = easeOutQuint(progress);
-      alpha =
-        state.currentMeasure - measure <= 1
-          ? 96 * (1 - eased) + 64
-          : (measure - state.currentMeasure - 1) * 64;
-    }
-    let saturation = 0.5 - (alpha / 255) * 0.5;
-    if (sliceType !== "1/1") {
-      saturation += 0.5;
-      saturation = Math.min(saturation, 1);
-    }
-    const color = characterTimeline.notes.find(
-      (timelineNote) =>
-        timelineNote.ticks <= note.ticks &&
-        note.ticks < timelineNote.ticks + timelineNote.durationTicks &&
-        timelineNote.midi >= characterMidi &&
-        timelineNote.midi < characterMidi + colors.length,
-    )?.midi;
-    const primaryColor = color
-      ? colors[color - characterMidi]
-      : ([
-          [255, 255, 255],
-          [192, 192, 192],
-        ] as const);
-
-    using _context = useRendererContext(tempGraphics);
-    tempGraphics.clear();
-    tempGraphics.noStroke();
-    tempGraphics.noSmooth();
-    tempGraphics.noFill();
-    tempGraphics.translate(dotUnit, dotUnit);
-    // tempGraphics.background(128);
-    drumVisualizer.drawDrumUnit(
-      tempGraphics,
-      state,
-      noteType,
-      measure,
-      primaryColor,
-      saturation,
-      alpha,
-    );
-    const drawRect = drumVisualizer.drawRects[sliceType];
-    const x = xPerDrum * measureDivision;
-    const y = 0;
-    graphics.image(
-      tempGraphics,
-      x + drawRect.x,
-      y + drawRect.y,
-      drawRect.width,
-      drawRect.height,
-      drawRect.x + dotUnit,
-      drawRect.y + dotUnit,
-      drawRect.width,
-      drawRect.height,
-    );
-  }
-}
 function drawMiniCymbalEffects(
   p: p5,
   graphics: p5.Graphics,
