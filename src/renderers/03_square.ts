@@ -16,7 +16,7 @@ const visualizerTimeline = timeline.tracks.find(
 )!;
 const activateMidi = 61;
 
-const size = height * 0.35;
+const size = height * 0.375;
 
 const kickExpand = size * 0.1;
 const expandDuration = 0.25;

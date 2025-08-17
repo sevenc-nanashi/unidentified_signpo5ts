@@ -20,17 +20,18 @@ const tycBaseNote = 72;
 
 const jumpHeight = 8;
 
+const characterScale = 2;
+const characterX = 150 / characterScale;
+
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   if (!mainImage) {
     mainImage = p.loadImage(mainImageUrl);
   }
-  const characterX = 150;
-  const characterMinusY = 20;
 
   using _context = useRendererContext(p);
   p.noSmooth();
   p.translate(p.width / 2, p.height / 2);
-  p.scale(dotUnit);
+  p.scale(dotUnit * characterScale);
   p.translate(0, Math.max(atlasMap["rei"].height, atlasMap["tyc"].height) / 2);
   {
     using _context = useRendererContext(p);
@@ -134,7 +135,9 @@ const drawCharacter = (
       );
       graphics.noStroke();
       const footWidth = atlas.yellowPixels[1][0] - atlas.yellowPixels[0][0];
-      const baseX = Math.round(atlas.yellowPixels[1][0] - atlas.start[0] - atlas.width / 2);
+      const baseX = Math.round(
+        atlas.yellowPixels[1][0] - atlas.start[0] - atlas.width / 2,
+      );
       const rand = new Rand(`${jumpSeed}:${name}:${jumpShift}`);
       graphics.rect(
         baseX - footWidth - 2,

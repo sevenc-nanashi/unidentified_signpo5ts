@@ -71,7 +71,7 @@ if (import.meta.hot) {
 
 function drawTexts(state: State) {
   mainGraphics.textFont(smallFont);
-  mainGraphics.textSize(dotUnit * 6);
+  mainGraphics.textSize(dotUnit * 8);
   mainGraphics.fill(255);
   {
     using _context = useRendererContext(mainGraphics);

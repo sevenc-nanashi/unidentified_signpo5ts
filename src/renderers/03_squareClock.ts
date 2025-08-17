@@ -1,7 +1,6 @@
 import p5 from "p5";
 import { State } from "../state.ts";
-import { dotUnit, height, smallFont } from "../const.ts";
-import { state as capturerState } from "p5-frame-capturer";
+import { dotUnit } from "../const.ts";
 import { useRendererContext } from "../utils.ts";
 import timeline from "../assets/timeline.mid?mid";
 import { midi } from "../midi.ts";
@@ -13,7 +12,7 @@ const activateMidi = 63;
 const ballActivateMidi = 64;
 const secondBallActivateMidi = 65;
 const sectionProgressMidi = 69;
-const radius = 150 * dotUnit;
+const radius = 160 * dotUnit;
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   const activateNote = visualizerTimeline.notes.find(
     (note) =>

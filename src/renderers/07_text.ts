@@ -1,12 +1,9 @@
-import type { Note } from "@tonejs/midi/dist/Note";
 import type p5 from "p5";
 import texts from "../assets/texts.txt?raw";
 import type { State } from "../state";
-import timelineMid, {
-  rawMidi as timelineRawMid,
-} from "../assets/timeline.mid?mid";
+import timelineMid from "../assets/timeline.mid?mid";
 import { dim, toRgb, useRendererContext } from "../utils";
-import { dotUnit, height, mainFont, reiColor, tycColor } from "../const";
+import { dotUnit, height, reiColor, tycColor } from "../const";
 
 const fg = [255, 255, 255] as const;
 const textsTrack = timelineMid.tracks.find((track) => track.name === "texts")!;
@@ -37,7 +34,7 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
 
   const section = textSections[index];
   if (section) {
-    const fontSize = dotUnit * 6;
+    const fontSize = dotUnit * 8;
 
     p.textSize(fontSize);
     p.textFont(font);

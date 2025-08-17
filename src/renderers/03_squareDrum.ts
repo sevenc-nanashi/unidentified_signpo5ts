@@ -15,7 +15,7 @@ const visualizerTimeline = timeline.tracks.find(
 const activateMidi = 67;
 const shiftLockMidi = 68;
 
-const size = height * 0.35;
+const size = height * 0.375;
 
 const kickExpand = size * 0.1;
 const drumBaseX = width / 2 - size / 2;
