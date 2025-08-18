@@ -14,6 +14,7 @@ import Rand from "rand-seed";
 
 const imageSwitchMid = 60;
 const alphaInMid = 59;
+const alphaOutMid = 52;
 const pixelsortOutMid = 58;
 const pixelsortInMid = 57;
 const pixelsortMid = 56;
@@ -271,15 +272,26 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     mainGraphics.quad(-1, -1, 1, -1, 1, 1, -1, 1);
   }
 
-  const alphaNote = backgroundTrack.track.notes.find(
+  const alphaInNote = backgroundTrack.track.notes.find(
     (note) =>
       note.ticks <= currentTick &&
       note.ticks + note.durationTicks > currentTick &&
       note.midi === alphaInMid,
   );
-  const alphaProgress = alphaNote
-    ? Math.min(1, (currentTick - alphaNote.ticks) / alphaNote.durationTicks)
-    : 1;
+  const alphaOutNote = backgroundTrack.track.notes.find(
+    (note) =>
+      note.ticks <= currentTick &&
+      note.ticks + note.durationTicks > currentTick &&
+      note.midi === alphaOutMid,
+  );
+  const alphaProgress = alphaInNote
+    ? Math.min(1, (currentTick - alphaInNote.ticks) / alphaInNote.durationTicks)
+    : alphaOutNote
+      ? Math.max(
+          0,
+          1 - (currentTick - alphaOutNote.ticks) / alphaOutNote.durationTicks,
+        )
+      : 1;
   p.tint(255, 255 * easeOutQuint(alphaProgress));
   p.noSmooth();
   p.image(mainGraphics, 0, 0, p.width, p.height);
