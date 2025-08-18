@@ -1,6 +1,6 @@
 import type p5 from "p5";
 import { sort } from "pixelsort";
-import { dotUnit, reiColor, tycColor } from "../const";
+import { dotUnit } from "../const";
 import { easeInQuint, easeOutQuint, lerp } from "../easing";
 import { loadTimelineWithText } from "../midi";
 import commonVert from "../shaders/common.vert?raw";
@@ -8,7 +8,6 @@ import timelineMid, {
   rawMidi as timelineRawMid,
 } from "../assets/timeline.mid?mid";
 import type { State } from "../state";
-import { resizeWithAspectRatio, saturate, useRendererContext } from "../utils";
 import foregroundFrag from "../shaders/foreground.frag?raw";
 import Rand from "rand-seed";
 

@@ -49,6 +49,12 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
       )
     : 0;
 
+  const sectionContinued = visualizerTimeline.notes.some(
+    (note) =>
+      note.ticks + note.durationTicks === sectionProgressNote?.ticks &&
+      note.midi === sectionProgressMidi,
+  );
+
   const graphics = import.meta.autoGraphics(
     p,
     "squareClock",
@@ -72,18 +78,26 @@ export const draw = import.meta.hmrify((p: p5, state: State) => {
     const y = Math.sin(angle) * radius;
     const ny = Math.sin(angle2) * radius;
 
-    graphics.stroke(255, 255, 255, 64);
-    graphics.line(x, y, nx, ny);
+    let progress = p.map(sectionProgress, 0.25 * i, 0.25 * (i + 1), 0, 1, true);
 
-    if (sectionProgress > 0.25 * i) {
+    const cx = p.map(progress, 0, 1, x, nx);
+    const cy = p.map(progress, 0, 1, y, ny);
+
+    if (x !== cx || y !== cy) {
       graphics.stroke(255, 255, 255);
-      graphics.line(
-        x,
-        y,
-        p.map(sectionProgress, 0.25 * i, 0.25 * (i + 1), x, nx, true),
-        p.map(sectionProgress, 0.25 * i, 0.25 * (i + 1), y, ny, true),
-      );
+      graphics.line(x, y, cx, cy);
     }
+    if (sectionContinued) {
+      graphics.stroke(
+        255,
+        255,
+        255,
+        p.map(sectionProgress, 0, 1 / 32, 255, 64, true),
+      );
+    } else {
+      graphics.stroke(255, 255, 255, 64);
+    }
+    graphics.line(cx, cy, nx, ny);
 
     if (ballActivateNote) {
       if (
