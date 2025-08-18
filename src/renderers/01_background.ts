@@ -9,7 +9,7 @@ import timelineMid, {
   rawMidi as timelineRawMid,
 } from "../assets/timeline.mid?mid";
 import type { State } from "../state";
-import { resizeWithAspectRatio, saturate, useRendererContext } from "../utils";
+import { saturate, useRendererContext } from "../utils";
 import Rand from "rand-seed";
 
 const imageSwitchMid = 60;
@@ -48,6 +48,8 @@ const particleInterval = 90;
 const particleSpeed = 0.02;
 const particleScale = 0.0005;
 const colorScale = 0.00005;
+const particleDuration = 960 * 24;
+const particleFadeDuration = 960;
 
 const wave = 1;
 const minusScale = 1 / 4;
@@ -320,21 +322,47 @@ const drawParticles = (p: p5, state: State) => {
     );
     const frames = f - particleNote.ticks;
     const elapsed = state.currentTick - f;
+    if (elapsed > particleDuration + particleFadeDuration) {
+      continue;
+    }
+    let opacity = 255;
+    if (elapsed > particleDuration) {
+      opacity = p.map(
+        elapsed,
+        particleDuration,
+        particleDuration + particleFadeDuration,
+        255,
+        0,
+      );
+    }
     const direction = f * 0.0001 + rotate + rand.next() * Math.PI * 2;
-    const x = Math.cos(direction) * elapsed * particleSpeed;
-    const y = Math.sin(direction) * elapsed * particleSpeed;
+    const randMin = 0.021;
+    const x =
+      Math.cos(direction) *
+      elapsed *
+      particleSpeed *
+      easeOutQuint(p.map(rand.next(), 0, 1, randMin, 1));
+    const y =
+      Math.sin(direction) *
+      elapsed *
+      particleSpeed *
+      easeOutQuint(p.map(rand.next(), 0, 1, randMin, 1));
 
     if ((frames / actualInterval) % 2 === 0) {
       particleGraphics.fill(
         ...saturate(tycColor, elapsed * colorScale * particleNote.velocity),
+        opacity,
       );
     } else {
       particleGraphics.fill(
         ...saturate(reiColor, elapsed * colorScale * particleNote.velocity),
+        opacity,
       );
     }
 
-    const scaleBase = Math.abs(Math.sin(frames * 0.01 + particleNote.ticks));
+    const scaleBase = easeOutQuint(
+      p.map(elapsed, 0, particleDuration + particleFadeDuration, 0.1, 1),
+    );
 
     particleGraphics.rotate(Math.PI / 4);
     particleGraphics.rectMode(p.CENTER);

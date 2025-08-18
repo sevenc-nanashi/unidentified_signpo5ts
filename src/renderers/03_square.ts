@@ -1,14 +1,12 @@
 import p5 from "p5";
 import { State } from "../state.ts";
-import { colors, dotUnit, height, width } from "../const.ts";
+import { dotUnit, height } from "../const.ts";
 import { useRendererContext } from "../utils.ts";
 import { DrumDefinition, drumDefinition } from "../drum.ts";
 import { midi } from "../midi.ts";
 import { easeOutQuint } from "../easing.ts";
 import timeline from "../assets/timeline.mid?mid";
 import { Track } from "@tonejs/midi";
-import * as drumVisualizer from "../components/drumVisualizer.ts";
-import { characterMidi, characterTimeline } from "../tracks.ts";
 import { Note } from "@tonejs/midi/dist/Note";
 
 const visualizerTimeline = timeline.tracks.find(
@@ -37,14 +35,9 @@ const clapPadding = dotUnit * 2;
 const starDuration = 2;
 const starSize = size * 0.9;
 const starWeight = dotUnit * 2;
+const starPadding = 1;
 const starDivs = 10;
 const starSwitch = 1 / 32;
-
-const drumBaseX = width / 2 - size / 2;
-const drumEndX = width - drumBaseX;
-const drumWidth = drumEndX - drumBaseX;
-
-const xPerDrum = (drumWidth - drumVisualizer.cellWidth) / (8 - 1);
 
 export const draw = import.meta.hmrify((p: p5, state: State) => {
   const graphics = import.meta.autoGraphics(p, "square", p.width, p.height);
@@ -336,7 +329,12 @@ function drawStar(
   notes: Partial<DrumDefinition>,
   activateNote: Note,
 ) {
-  const tempGraphics = import.meta.autoGraphics(p, "starTemp", size, size);
+  const tempGraphics = import.meta.autoGraphics(
+    p,
+    "starTemp",
+    size + starPadding * 2,
+    size + starPadding * 2,
+  );
   const lastStar = track.notes.findLast(
     (note) =>
       midi.header.ticksToMeasures(note.ticks) + starDuration >
@@ -413,7 +411,12 @@ function drawStar(
         if ((x + y) % 2 === invert) {
           // @ts-expect-error p5.ts is broken
           tempGraphics.blendMode(p.REMOVE);
-          tempGraphics.rect(xPos, yPos, cellSize, cellSize);
+          tempGraphics.rect(
+            xPos - starPadding,
+            yPos - starPadding,
+            cellSize + starPadding * 2,
+            cellSize + starPadding * 2,
+          );
         }
       }
     }
