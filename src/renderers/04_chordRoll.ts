@@ -10,7 +10,9 @@ const visualizerTimeline = timeline.tracks.find(
   (track) => track.name === "visualizer",
 )!;
 const activateMidi = 62;
-const chordTrack = midi.tracks.find((track) => track.name === "LABS")!;
+const chordTrack =
+  midi.tracks[midi.tracks.findIndex((track) => track.name === "chords") + 2];
+
 const tycChorusTrack = ust.tracks[2];
 const reiChorusTrack = ust.tracks[3];
 
