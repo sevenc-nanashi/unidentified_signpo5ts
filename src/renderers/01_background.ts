@@ -48,7 +48,7 @@ let particleGraphics: p5.Graphics;
 const particleInterval = 90;
 const particleSpeed = 0.02;
 const particleScale = 0.0005;
-const colorScale = 0.00005;
+const colorScale = 1;
 const particleDuration = 960 * 24;
 const particleFadeDuration = 960;
 
@@ -360,14 +360,15 @@ const drawParticles = (p: p5, state: State) => {
       particleSpeed *
       easeOutQuint(p.map(rand.next(), 0, 1, randMin, 1));
 
+    const saturation = p.map(easeInQuint(rand.next()), 0, 1, 0.2, 1);
     if ((frames / actualInterval) % 2 === 0) {
       particleGraphics.fill(
-        ...saturate(tycColor, elapsed * colorScale * particleNote.velocity),
+        ...saturate(tycColor, particleNote.velocity * saturation),
         opacity,
       );
     } else {
       particleGraphics.fill(
-        ...saturate(reiColor, elapsed * colorScale * particleNote.velocity),
+        ...saturate(reiColor, particleNote.velocity * saturation),
         opacity,
       );
     }
