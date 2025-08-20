@@ -1,8 +1,8 @@
-# (unidentified)_signpo5ts
+# (unidentified)signpo5ts
 
-ニコニコ：(wip)
+ニコニコ：<https://www.nicovideo.jp/watch/sm45306946>
 
-素材配布：(wip)
+素材配布：<https://github.com/sevenc-nanashi/unidentified_signpo5ts/releases/tag/init>
 
 ## ライセンス
 
